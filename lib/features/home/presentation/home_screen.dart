@@ -1,0 +1,207 @@
+// lib/features/home/presentation/home_screen.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
+import '../domain/home_notifier.dart';
+import '../domain/home_state.dart';
+
+final _dateFormat = DateFormat('dd/MM/yyyy');
+
+class HomeDashboardScreen extends ConsumerWidget {
+  const HomeDashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final asyncState = ref.watch(homeDashboardProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('ProposalYou'),
+        actions: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: theme.colorScheme.primaryContainer,
+            child: Icon(Icons.person, size: 18, color: theme.colorScheme.onPrimaryContainer),
+          ),
+          const SizedBox(width: 12),
+        ],
+      ),
+      body: asyncState.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Erro: $e')),
+        data: (state) => switch (state) {
+          HomeDashboardLoading() => const Center(child: CircularProgressIndicator()),
+          HomeDashboardError(:final message) => Center(child: Text(message)),
+          HomeDashboardLoaded() => RefreshIndicator(
+              onRefresh: () => ref.read(homeDashboardProvider.notifier).refresh(),
+              child: _DashboardContent(state: state),
+            ),
+        },
+      ),
+    );
+  }
+}
+
+class _DashboardContent extends StatelessWidget {
+  final HomeDashboardLoaded state;
+  const _DashboardContent({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Cards de métricas
+        Row(children: [
+          Expanded(child: _MetricCard(
+            icon: Icons.article_outlined, label: 'Pendentes',
+            value: state.propostasPendentes.toString(),
+            color: theme.colorScheme.tertiary,
+          )),
+          const SizedBox(width: 12),
+          Expanded(child: _MetricCard(
+            icon: Icons.check_circle_outline, label: 'Aprovadas',
+            value: state.propostasAprovadas.toString(),
+            color: Colors.green,
+          )),
+          const SizedBox(width: 12),
+          Expanded(child: _MetricCard(
+            icon: Icons.draw_outlined, label: 'Assinaturas',
+            value: state.contratosAguardando.toString(),
+            color: theme.colorScheme.error,
+          )),
+        ]),
+        const SizedBox(height: 24),
+
+        // Ações rápidas
+        Text('Ações Rápidas', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 12),
+        Row(children: [
+          Expanded(child: OutlinedButton.icon(
+            onPressed: () => context.push('/proposals/new/step1'),
+            icon: const Icon(Icons.article_outlined),
+            label: const Text('Nova Proposta'),
+          )),
+          const SizedBox(width: 8),
+          Expanded(child: OutlinedButton.icon(
+            onPressed: () => context.push('/contracts/new'),
+            icon: const Icon(Icons.handshake_outlined),
+            label: const Text('Novo Contrato'),
+          )),
+          const SizedBox(width: 8),
+          Expanded(child: OutlinedButton.icon(
+            onPressed: () => context.push('/clients/new'),
+            icon: const Icon(Icons.person_add_outlined),
+            label: const Text('Novo Cliente'),
+          )),
+        ]),
+        const SizedBox(height: 24),
+
+        // Lista Recentes
+        Text('Recentes', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 12),
+        if (state.recentes.isEmpty)
+          _EmptyState()
+        else
+          ...state.recentes.map((item) => _RecentItemCard(item: item)),
+      ],
+    );
+  }
+}
+
+class _MetricCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _MetricCard({required this.icon, required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 8),
+          Text(value, style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold, color: color,
+          )),
+          const SizedBox(height: 4),
+          Text(label, style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          )),
+        ]),
+      ),
+    );
+  }
+}
+
+class _RecentItemCard extends StatelessWidget {
+  final RecentItem item;
+  const _RecentItemCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isProposal = item.tipo == 'proposta';
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: isProposal
+              ? theme.colorScheme.primaryContainer
+              : theme.colorScheme.secondaryContainer,
+          child: Icon(
+            isProposal ? Icons.article_outlined : Icons.handshake_outlined,
+            color: isProposal
+                ? theme.colorScheme.onPrimaryContainer
+                : theme.colorScheme.onSecondaryContainer,
+          ),
+        ),
+        title: Text(item.clienteNome),
+        subtitle: Text(
+          '${isProposal ? "Proposta" : "Contrato"} • ${_dateFormat.format(item.updatedAt)}',
+        ),
+        trailing: Chip(
+          label: Text(item.status, style: const TextStyle(fontSize: 11)),
+          padding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
+        ),
+        onTap: () {
+          if (isProposal) {
+            context.push('/proposals/${item.id}');
+          } else {
+            context.push('/contracts/${item.id}');
+          }
+        },
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48),
+      child: Column(children: [
+        Icon(Icons.inbox_outlined, size: 64, color: theme.colorScheme.outline),
+        const SizedBox(height: 16),
+        Text('Nenhuma atividade ainda.',
+            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.outline)),
+        const SizedBox(height: 4),
+        Text('Comece criando uma proposta.',
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline)),
+      ]),
+    );
+  }
+}
