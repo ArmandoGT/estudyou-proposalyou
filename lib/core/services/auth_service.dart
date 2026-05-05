@@ -48,7 +48,7 @@ class AuthService extends _$AuthService {
     required String providerSlug,
   }) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
+    try {
       final client = ref.read(supabaseClientProvider);
 
       // Autentica no Supabase Auth
@@ -71,8 +71,11 @@ class AuthService extends _$AuthService {
       await _secureStorage.write(key: _kActiveProviderId, value: provider.id);
       await _secureStorage.write(key: _kActiveProviderSlug, value: providerSlug);
 
-      return response.user;
-    });
+      state = AsyncData(response.user);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
   }
 
   /// Logout: limpa secure storage e invalida sessão Supabase.

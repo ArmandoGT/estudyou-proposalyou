@@ -72,8 +72,9 @@ class LoginNotifier extends _$LoginNotifier {
       state = LoginError(e.toUserMessage());
     } on AuthApiException catch (e) {
       state = LoginError(e.toAppException().toUserMessage());
-    } catch (e) {
-      state = LoginError('Erro inesperado. Tente novamente.');
+    } catch (e, st) {
+      print('LOGIN ERRO INESPERADO: $e\n$st');
+      state = LoginError('Erro inesperado: $e');
     }
   }
 

@@ -43,14 +43,24 @@ import '../services/auth_service.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  // Observa o estado de autenticação real
-  final authState = ref.watch(authServiceProvider);
+  // Listenable para notificar o router sobre mudanças no authState sem recriar o GoRouter
+  final authStateNotifier = ValueNotifier<bool>(false);
+
+  ref.listen(authServiceProvider, (previous, next) {
+    authStateNotifier.value = !authStateNotifier.value;
+  });
 
   return GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: '/splash',
+    refreshListenable: authStateNotifier,
     redirect: (BuildContext context, GoRouterState state) {
-      final bool isAuthenticated = authState.value != null;
+      final authState = ref.read(authServiceProvider);
+      
+      // Se a autenticação estiver carregando (ex: durante login), não redireciona prematuramente
+      if (authState.isLoading && authState.value == null) return null;
+
+      final bool isAuthenticated = authState.value != null && !authState.hasError;
       final bool isGoingToLogin = state.matchedLocation == '/login';
       final bool isGoingToSplash = state.matchedLocation == '/splash';
       final bool isPublicSignature = state.matchedLocation.startsWith('/s/');
