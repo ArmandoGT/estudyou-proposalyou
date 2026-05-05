@@ -80,7 +80,7 @@ class ContractDetailScreen extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Hash do Documento:'),
-                          Text(contract.hashDocumento?.isNotEmpty == true ? contract.hashDocumento!.substring(0, 8) + '...' : 'Ainda não assinado', 
+                          Text(contract.hashDocumento?.isNotEmpty == true ? '${contract.hashDocumento!.substring(0, 8)}...' : 'Ainda não assinado', 
                                style: const TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),

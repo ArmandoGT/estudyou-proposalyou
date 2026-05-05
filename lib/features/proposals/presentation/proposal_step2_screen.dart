@@ -80,7 +80,7 @@ class _ProposalStep2ScreenState extends ConsumerState<ProposalStep2Screen> {
                 child: DropdownButtonFormField<ProductDto>(
                   decoration: const InputDecoration(labelText: 'Adicionar Produto/Serviço'),
                   items: productsState is ProductListLoaded
-                      ? (productsState as ProductListLoaded).products.where((p) => p.ativo).map((p) => DropdownMenuItem(
+                      ? productsState.products.where((p) => p.ativo).map((p) => DropdownMenuItem(
                           value: p, child: Text('${p.nome} - ${_brl.format(p.preco)}'),
                         )).toList()
                       : [],

@@ -51,7 +51,7 @@ class _ContractStep1ScreenState extends ConsumerState<ContractStep1Screen> {
                 const Center(child: CircularProgressIndicator())
               else if (proposalsState is ProposalListLoaded)
                 DropdownButtonFormField<ProposalDto>(
-                  value: _selectedProposal,
+                  initialValue: _selectedProposal,
                   decoration: const InputDecoration(labelText: 'Selecione a Proposta'),
                   items: proposalsState.proposals
                       .where((p) => p.status == 'aprovada')

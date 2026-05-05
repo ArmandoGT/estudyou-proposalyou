@@ -15,6 +15,8 @@ class ContractDto {
   final String? pdfUrl;
   final String? hashDocumento;
   final int totalSignatarios;
+  // ⚠️ DECISÃO PENDENTE: adicionar coluna link_assinatura à tabela contracts
+  final String? linkAssinatura;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -35,6 +37,7 @@ class ContractDto {
     this.shareToken,
     this.pdfUrl,
     this.hashDocumento,
+    this.linkAssinatura,
     this.totalSignatarios = 2,
     required this.createdAt,
     required this.updatedAt,
@@ -65,6 +68,7 @@ class ContractDto {
       shareToken: json['share_token'] as String?,
       pdfUrl: json['pdf_url'] as String?,
       hashDocumento: json['hash_documento'] as String?,
+      linkAssinatura: json['link_assinatura'] as String?,
       totalSignatarios: json['total_signatarios'] as int? ?? 2,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -79,6 +83,7 @@ class ContractDto {
         'status': status, 'texto_final': textoFinal,
         'vigencia_inicio': vigenciaInicio?.toIso8601String().split('T').first,
         'vigencia_fim': vigenciaFim?.toIso8601String().split('T').first,
+        'link_assinatura': linkAssinatura ?? '',
         'total_signatarios': totalSignatarios,
       };
 
@@ -86,7 +91,7 @@ class ContractDto {
     String? id, String? providerId, String? clientId, String? templateId,
     String? proposalId, String? status, String? textoFinal,
     DateTime? vigenciaInicio, DateTime? vigenciaFim, String? shareToken,
-    String? pdfUrl, String? hashDocumento, int? totalSignatarios,
+    String? pdfUrl, String? hashDocumento, String? linkAssinatura, int? totalSignatarios,
     DateTime? createdAt, DateTime? updatedAt, String? clienteNome,
     int? assinaturasRealizadas,
   }) => ContractDto(
@@ -98,6 +103,7 @@ class ContractDto {
         vigenciaFim: vigenciaFim ?? this.vigenciaFim,
         shareToken: shareToken ?? this.shareToken, pdfUrl: pdfUrl ?? this.pdfUrl,
         hashDocumento: hashDocumento ?? this.hashDocumento,
+        linkAssinatura: linkAssinatura ?? this.linkAssinatura,
         totalSignatarios: totalSignatarios ?? this.totalSignatarios,
         createdAt: createdAt ?? this.createdAt, updatedAt: updatedAt ?? this.updatedAt,
         clienteNome: clienteNome ?? this.clienteNome,

@@ -61,7 +61,7 @@ class _ProposalStep1ScreenState extends ConsumerState<ProposalStep1Screen> {
       _selectedClient = widget.initialClient;
     } else if (_selectedClient == null && state.draft.clientId.isNotEmpty && clientsState is ClientListLoaded) {
       try {
-        _selectedClient = (clientsState as ClientListLoaded).clients.firstWhere((c) => c.id == state.draft.clientId);
+        _selectedClient = clientsState.clients.firstWhere((c) => c.id == state.draft.clientId);
       } catch (_) {}
     }
 
@@ -112,9 +112,9 @@ class _ProposalStep1ScreenState extends ConsumerState<ProposalStep1Screen> {
                 const Center(child: CircularProgressIndicator())
               else if (clientsState is ClientListLoaded)
                 DropdownButtonFormField<ClientDto>(
-                  value: _selectedClient,
+                  initialValue: _selectedClient,
                   decoration: const InputDecoration(labelText: 'Selecione o Cliente'),
-                  items: (clientsState as ClientListLoaded).clients.map((c) => DropdownMenuItem(
+                  items: clientsState.clients.map((c) => DropdownMenuItem(
                     value: c,
                     child: Text('${c.nome} (${c.cpfCnpj})'),
                   )).toList(),

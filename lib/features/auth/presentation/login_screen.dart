@@ -103,7 +103,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   // Seletor de empresa
                   DropdownButtonFormField<String>(
-                    value: _selectedProvider,
+                    initialValue: _selectedProvider,
                     decoration: const InputDecoration(
                       labelText: 'Empresa',
                       prefixIcon: Icon(Icons.business),
@@ -236,18 +236,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 try {
                   await ref.read(loginProvider.notifier)
                       .resetPassword(resetEmailController.text.trim());
-                  if (ctx.mounted) {
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Link enviado! Verifique seu e-mail.')),
-                    );
-                  }
+                  if (!ctx.mounted) return;
+                  Navigator.pop(ctx);
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Link enviado! Verifique seu e-mail.')),
+                  );
                 } on AppException catch (e) {
-                  if (ctx.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(e.toUserMessage())),
-                    );
-                  }
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toUserMessage())),
+                  );
                 }
               },
               child: const Text('Enviar link'),
