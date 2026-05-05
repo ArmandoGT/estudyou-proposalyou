@@ -19,7 +19,7 @@ class ContractRepository {
     int offset = 0, int limit = 20, String? status,
   }) async {
     try {
-      var query = _table.select('*, client:clients(nome), signatures(id)');
+      var query = _table.select('*, client:clients(nome), signatures!contract_id(id)');
       if (status != null) query = query.eq('status', status);
       final data = await query.order('updated_at', ascending: false)
           .range(offset, offset + limit - 1);
@@ -32,7 +32,7 @@ class ContractRepository {
   Future<ContractDto> getById(String id) async {
     try {
       final data = await _table
-          .select('*, client:clients(nome), signatures(id)')
+          .select('*, client:clients(nome), signatures!contract_id(id)')
           .eq('id', id).single();
       return ContractDto.fromJson(data);
     } on PostgrestException catch (e) {
@@ -63,7 +63,7 @@ class ContractRepository {
   Future<ContractDto?> getByShareToken(String token) async {
     try {
       final data = await _table
-          .select('*, client:clients(nome), signatures(id)')
+          .select('*, client:clients(nome), signatures!contract_id(id)')
           .eq('share_token', token).maybeSingle();
       return data != null ? ContractDto.fromJson(data) : null;
     } on PostgrestException catch (e) {

@@ -35,8 +35,14 @@ import 'shared/theme/app_theme.dart';
 ///
 /// Em CI/CD, estas variáveis são definidas como secrets do pipeline.
 /// Em desenvolvimento local, passe diretamente no comando `flutter run`.
-const String _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-const String _supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+const String _supabaseUrl = String.fromEnvironment(
+  'SUPABASE_URL',
+  defaultValue: 'https://qwijsgiijzftdtehoylf.supabase.co',
+);
+const String _supabaseAnonKey = String.fromEnvironment(
+  'SUPABASE_ANON_KEY',
+  defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3aWpzZ2lpanpmdGR0ZWhveWxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MjE0MDcsImV4cCI6MjA5MzA5NzQwN30.7QS1IQsC4-_PHO392mjUHrBpDZ2GoigroZGxTRRmerE',
+);
 
 Future<void> main() async {
   // Garante que os bindings do Flutter estão inicializados antes de
