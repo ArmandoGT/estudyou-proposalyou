@@ -1,384 +1,399 @@
-// lib/shared/theme/app_theme.dart
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// ProposalYou — Sistema de temas (Material 3)
-// ─────────────────────────────────────────────────────────────────────────────
-//
-// Define os temas claro e escuro do aplicativo utilizando Material 3
-// com `ColorScheme.fromSeed()`. Os tokens de cor dos 3 tenants (Estudyou,
-// Protseg, Protuni) estão como marcadores de decisão pendente até
-// confirmação do brandbook de cada empresa.
-//
-// ─────────────────────────────────────────────────────────────────────────────
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-// 🎨 TENANT TOKENS — substituir após confirmação de brandbook
-//
-// Estudyou : seedColor = Color(0xFF...) // ⚠️ DECISÃO PENDENTE: cor oficial
-// Protseg  : seedColor = Color(0xFF...) // ⚠️ DECISÃO PENDENTE: cor oficial
-// Protuni  : seedColor = Color(0xFF...) // ⚠️ DECISÃO PENDENTE: cor oficial
-//
-// Na FASE 2, o tema será dinâmico: a seedColor será selecionada com base
-// na empresa ativa do usuário (provider_id). O AppTheme receberá o
-// tenant como parâmetro para gerar o ColorScheme correspondente.
-
-/// Sistema de temas do ProposalYou.
-///
-/// Classe selada (sealed) que expõe factories estáticas para os temas
-/// claro e escuro. Utiliza Material 3 com geração de paleta automática
-/// via [ColorScheme.fromSeed].
-///
-/// Exemplo de uso:
-/// ```dart
-/// MaterialApp(
-///   theme: AppTheme.light(),
-///   darkTheme: AppTheme.dark(),
-/// )
-/// ```
 sealed class AppTheme {
-  // ⚠️ DECISÃO PENDENTE: seedColor será dinâmica por tenant na FASE 2.
-  // Por enquanto, utiliza uma cor neutra corporativa como placeholder.
-  static const Color _defaultSeedColor = Color(0xFF1A73E8);
+  static const Color primary = Color(0xFFF59700);
+  static const Color secondary = Color(0xFF0F172A);
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color waitingStatus = Color(0xFFF59E0B);
+  static const Color signedStatus = Color(0xFF22C55E);
+  static const double _radius = 12;
 
-  // ───────────────────────────────────────────────────────────────────
-  // TIPOGRAFIA
-  // ───────────────────────────────────────────────────────────────────
-  //
-  // Utiliza a família de fontes padrão do sistema com pesos e tamanhos
-  // seguindo as diretrizes do Material 3 TextTheme.
-  // Na FASE 2, considerar importar Google Fonts (Inter, Roboto, Outfit)
-  // via package google_fonts para maior controle tipográfico.
-  // ───────────────────────────────────────────────────────────────────
+  static const ColorScheme _lightColorScheme = ColorScheme(
+    brightness: Brightness.light,
+    primary: primary,
+    onPrimary: Colors.white,
+    secondary: secondary,
+    onSecondary: Colors.white,
+    error: Color(0xFFDC2626),
+    onError: Colors.white,
+    surface: surface,
+    onSurface: secondary,
+    surfaceContainerHighest: Color(0xFFF1F5F9),
+    onSurfaceVariant: textSecondary,
+    outline: Color(0xFFD7DEE7),
+    outlineVariant: Color(0xFFE2E8F0),
+    shadow: Color(0x140F172A),
+    scrim: Color(0x330F172A),
+    inverseSurface: secondary,
+    onInverseSurface: surface,
+    inversePrimary: Color(0xFFFFB84D),
+    tertiary: waitingStatus,
+    onTertiary: secondary,
+    tertiaryContainer: Color(0xFFFFF3D6),
+    onTertiaryContainer: secondary,
+    primaryContainer: Color(0xFFFFE7BF),
+    onPrimaryContainer: secondary,
+    secondaryContainer: Color(0xFFE2E8F0),
+    onSecondaryContainer: secondary,
+    surfaceDim: Color(0xFFE2E8F0),
+    surfaceBright: surface,
+  );
 
-  /// Tipografia base do aplicativo.
-  ///
-  /// Define todos os estilos de texto do Material 3:
-  /// displayLarge → bodySmall, com pesos e tamanhos otimizados
-  /// para leitura em dispositivos móveis.
-  static TextTheme get _textTheme {
-    return const TextTheme(
-      // Display — Usado em telas de destaque (splash, onboarding)
-      displayLarge: TextStyle(
-        fontSize: 57,
-        fontWeight: FontWeight.w400,
-        letterSpacing: -0.25,
-        height: 1.12,
-      ),
-      displayMedium: TextStyle(
-        fontSize: 45,
-        fontWeight: FontWeight.w400,
-        height: 1.16,
-      ),
-      displaySmall: TextStyle(
-        fontSize: 36,
-        fontWeight: FontWeight.w400,
-        height: 1.22,
-      ),
+  static const ColorScheme _darkColorScheme = ColorScheme(
+    brightness: Brightness.dark,
+    primary: primary,
+    onPrimary: Color(0xFF251900),
+    secondary: Color(0xFFE2E8F0),
+    onSecondary: Color(0xFF0F172A),
+    error: Color(0xFFF87171),
+    onError: Color(0xFF450A0A),
+    surface: Color(0xFF0F172A),
+    onSurface: Color(0xFFF8FAFC),
+    surfaceContainerHighest: Color(0xFF1E293B),
+    onSurfaceVariant: Color(0xFFCBD5E1),
+    outline: Color(0xFF475569),
+    outlineVariant: Color(0xFF334155),
+    shadow: Color(0x33000000),
+    scrim: Color(0x66000000),
+    inverseSurface: Color(0xFFF8FAFC),
+    onInverseSurface: secondary,
+    inversePrimary: Color(0xFFB86F00),
+    tertiary: Color(0xFFFBBF24),
+    onTertiary: Color(0xFF251900),
+    tertiaryContainer: Color(0xFF4A3410),
+    onTertiaryContainer: Color(0xFFFFE7BF),
+    primaryContainer: Color(0xFF5A3800),
+    onPrimaryContainer: Color(0xFFFFE7BF),
+    secondaryContainer: Color(0xFF1E293B),
+    onSecondaryContainer: Color(0xFFF8FAFC),
+    surfaceDim: Color(0xFF0B1120),
+    surfaceBright: Color(0xFF1E293B),
+  );
 
-      // Headline — Usado em cabeçalhos de seção
-      headlineLarge: TextStyle(
-        fontSize: 32,
+  static TextTheme _baseTextTheme(Color textColor, Color secondaryTextColor) {
+    final base = GoogleFonts.interTextTheme();
+
+    return base.copyWith(
+      headlineLarge: base.headlineLarge?.copyWith(
         fontWeight: FontWeight.w600,
+        color: textColor,
+        height: 1.2,
+      ),
+      headlineMedium: base.headlineMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: textColor,
         height: 1.25,
       ),
-      headlineMedium: TextStyle(
-        fontSize: 28,
+      headlineSmall: base.headlineSmall?.copyWith(
         fontWeight: FontWeight.w600,
-        height: 1.29,
+        color: textColor,
+        height: 1.3,
       ),
-      headlineSmall: TextStyle(
-        fontSize: 24,
+      titleLarge: base.titleLarge?.copyWith(
         fontWeight: FontWeight.w600,
-        height: 1.33,
+        color: textColor,
+        height: 1.3,
       ),
-
-      // Title — Usado em AppBar, cards e diálogos
-      titleLarge: TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.w500,
-        height: 1.27,
+      titleMedium: base.titleMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: textColor,
+        height: 1.35,
       ),
-      titleMedium: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.15,
-        height: 1.50,
+      titleSmall: base.titleSmall?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: textColor,
+        height: 1.35,
       ),
-      titleSmall: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.1,
-        height: 1.43,
-      ),
-
-      // Label — Usado em botões, chips, badges
-      labelLarge: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.1,
-        height: 1.43,
-      ),
-      labelMedium: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.5,
-        height: 1.33,
-      ),
-      labelSmall: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.5,
-        height: 1.45,
-      ),
-
-      // Body — Usado em conteúdo textual geral
-      bodyLarge: TextStyle(
-        fontSize: 16,
+      bodyLarge: base.bodyLarge?.copyWith(
         fontWeight: FontWeight.w400,
-        letterSpacing: 0.5,
-        height: 1.50,
+        color: textColor,
+        height: 1.5,
       ),
-      bodyMedium: TextStyle(
-        fontSize: 14,
+      bodyMedium: base.bodyMedium?.copyWith(
         fontWeight: FontWeight.w400,
-        letterSpacing: 0.25,
-        height: 1.43,
+        color: textColor,
+        height: 1.5,
       ),
-      bodySmall: TextStyle(
-        fontSize: 12,
+      bodySmall: base.bodySmall?.copyWith(
         fontWeight: FontWeight.w400,
-        letterSpacing: 0.4,
-        height: 1.33,
+        color: secondaryTextColor,
+        height: 1.5,
+      ),
+      labelLarge: base.labelLarge?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: textColor,
+        height: 1.3,
+      ),
+      labelMedium: base.labelMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: secondaryTextColor,
+        height: 1.3,
+      ),
+      labelSmall: base.labelSmall?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: secondaryTextColor,
+        height: 1.3,
       ),
     );
   }
 
-  // ───────────────────────────────────────────────────────────────────
-  // TEMA CLARO
-  // ───────────────────────────────────────────────────────────────────
-
-  /// Cria o tema claro do aplicativo com Material 3.
-  ///
-  /// Utiliza [ColorScheme.fromSeed] para gerar automaticamente uma
-  /// paleta de cores harmônica a partir da seedColor.
   static ThemeData light() {
-    final ColorScheme colorScheme = ColorScheme.fromSeed(
-      seedColor: _defaultSeedColor,
-      brightness: Brightness.light,
-    );
+    final textTheme = _baseTextTheme(secondary, textSecondary);
 
     return ThemeData(
       useMaterial3: true,
-      colorScheme: colorScheme,
-      textTheme: _textTheme,
-
-      // ─────────────────────────────────────────────────────────────
-      // AppBar — Estilo corporativo para o cabeçalho
-      // ─────────────────────────────────────────────────────────────
+      colorScheme: _lightColorScheme,
+      scaffoldBackgroundColor: background,
+      canvasColor: background,
+      textTheme: textTheme,
+      cardColor: surface,
+      dividerColor: _lightColorScheme.outlineVariant,
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
-        scrolledUnderElevation: 1,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-        titleTextStyle: _textTheme.titleLarge?.copyWith(
-          color: colorScheme.onSurface,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-
-      // ─────────────────────────────────────────────────────────────
-      // Card — Base para cards de métricas, clientes, propostas
-      // ─────────────────────────────────────────────────────────────
-      cardTheme: CardThemeData(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-        ),
-        color: colorScheme.surface,
+        scrolledUnderElevation: 0,
+        backgroundColor: secondary,
+        foregroundColor: surface,
         surfaceTintColor: Colors.transparent,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        titleTextStyle: textTheme.titleLarge?.copyWith(color: surface),
+        iconTheme: const IconThemeData(color: surface),
+        actionsIconTheme: const IconThemeData(color: surface),
       ),
-
-      // ─────────────────────────────────────────────────────────────
-      // FilledButton — Botão principal de ações (Login, Salvar, etc.)
-      // ─────────────────────────────────────────────────────────────
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: const Color(0xFFFFD699),
+          disabledForegroundColor: Colors.white70,
+          minimumSize: const Size(double.infinity, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_radius),
+          ),
+          textStyle: textTheme.labelLarge?.copyWith(color: Colors.white),
+        ),
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(_radius),
           ),
-          textStyle: _textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: textTheme.labelLarge?.copyWith(color: Colors.white),
         ),
       ),
-
-      // ─────────────────────────────────────────────────────────────
-      // InputDecoration — Campos de formulário (email, senha, busca)
-      // ─────────────────────────────────────────────────────────────
+      cardTheme: CardThemeData(
+        color: surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shadowColor: const Color(0x140F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_radius),
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        fillColor: const Color(0xFFF8FAFC),
+        hintStyle: textTheme.bodyMedium?.copyWith(color: textSecondary),
+        labelStyle: textTheme.bodyMedium?.copyWith(color: textSecondary),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outline),
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: const BorderSide(color: Color(0xFFD7DEE7)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: const BorderSide(color: Color(0xFFD7DEE7)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: const BorderSide(color: primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.error),
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: const BorderSide(color: Color(0xFFDC2626)),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: const BorderSide(color: Color(0xFFDC2626), width: 1.5),
         ),
       ),
-
-      // ─────────────────────────────────────────────────────────────
-      // NavigationBar — BottomNavigationBar do Material 3
-      // ─────────────────────────────────────────────────────────────
       navigationBarTheme: NavigationBarThemeData(
-        elevation: 2,
-        height: 72,
-        indicatorColor: colorScheme.secondaryContainer,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        height: 76,
+        backgroundColor: surface,
+        indicatorColor: const Color(0xFFFFE7BF),
+        labelTextStyle: WidgetStatePropertyAll(
+          textTheme.labelMedium?.copyWith(color: secondary),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: primary);
+          }
+          return const IconThemeData(color: textSecondary);
+        }),
       ),
-
-      // ─────────────────────────────────────────────────────────────
-      // Divider — Separador visual entre seções
-      // ─────────────────────────────────────────────────────────────
-      dividerTheme: DividerThemeData(
-        color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: primary,
+        foregroundColor: Colors.white,
+      ),
+      dividerTheme: const DividerThemeData(
+        color: Color(0xFFE2E8F0),
         thickness: 1,
         space: 1,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: const Color(0xFFF1F5F9),
+        selectedColor: const Color(0xFFFFE7BF),
+        disabledColor: const Color(0xFFE2E8F0),
+        side: BorderSide.none,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_radius),
+        ),
+        labelStyle: textTheme.labelMedium ?? const TextStyle(),
       ),
     );
   }
 
-  // ───────────────────────────────────────────────────────────────────
-  // TEMA ESCURO
-  // ───────────────────────────────────────────────────────────────────
-
-  /// Cria o tema escuro do aplicativo com Material 3.
-  ///
-  /// Mesma seedColor do tema claro, com brightness alterado para
-  /// [Brightness.dark]. O Material 3 gera automaticamente a paleta
-  /// de cores escuras correspondente.
   static ThemeData dark() {
-    final ColorScheme colorScheme = ColorScheme.fromSeed(
-      seedColor: _defaultSeedColor,
-      brightness: Brightness.dark,
-    );
+    final textTheme = _baseTextTheme(_darkColorScheme.onSurface, _darkColorScheme.onSurfaceVariant);
 
     return ThemeData(
       useMaterial3: true,
-      colorScheme: colorScheme,
-      textTheme: _textTheme,
-
-      // ─────────────────────────────────────────────────────────────
-      // AppBar — Fundo escuro com boa legibilidade
-      // ─────────────────────────────────────────────────────────────
+      colorScheme: _darkColorScheme,
+      scaffoldBackgroundColor: const Color(0xFF020817),
+      canvasColor: const Color(0xFF020817),
+      textTheme: textTheme,
+      cardColor: _darkColorScheme.surface,
+      dividerColor: _darkColorScheme.outlineVariant,
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
-        scrolledUnderElevation: 1,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-        titleTextStyle: _textTheme.titleLarge?.copyWith(
-          color: colorScheme.onSurface,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-
-      // ─────────────────────────────────────────────────────────────
-      // Card — Superfície elevada com bordas sutis no tema escuro
-      // ─────────────────────────────────────────────────────────────
-      cardTheme: CardThemeData(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-        ),
-        color: colorScheme.surfaceContainer,
+        scrolledUnderElevation: 0,
+        backgroundColor: _darkColorScheme.surface,
+        foregroundColor: _darkColorScheme.onSurface,
         surfaceTintColor: Colors.transparent,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        titleTextStyle: textTheme.titleLarge,
+        iconTheme: IconThemeData(color: _darkColorScheme.onSurface),
+        actionsIconTheme: IconThemeData(color: _darkColorScheme.onSurface),
       ),
-
-      // ─────────────────────────────────────────────────────────────
-      // FilledButton — Mesmo padrão visual do tema claro
-      // ─────────────────────────────────────────────────────────────
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(double.infinity, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_radius),
+          ),
+          textStyle: textTheme.labelLarge?.copyWith(color: Colors.white),
+        ),
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(_radius),
           ),
-          textStyle: _textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: textTheme.labelLarge?.copyWith(color: Colors.white),
         ),
       ),
-
-      // ─────────────────────────────────────────────────────────────
-      // InputDecoration — Campos com fundo escuro sutil
-      // ─────────────────────────────────────────────────────────────
+      cardTheme: CardThemeData(
+        color: _darkColorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shadowColor: const Color(0x33000000),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          side: BorderSide(color: _darkColorScheme.outlineVariant),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: _darkColorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_radius),
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        fillColor: _darkColorScheme.surfaceContainerHighest,
+        hintStyle: textTheme.bodyMedium?.copyWith(color: _darkColorScheme.onSurfaceVariant),
+        labelStyle: textTheme.bodyMedium?.copyWith(color: _darkColorScheme.onSurfaceVariant),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outline),
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: BorderSide(color: _darkColorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: BorderSide(color: _darkColorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: const BorderSide(color: primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.error),
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: BorderSide(color: _darkColorScheme.error),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: BorderSide(color: _darkColorScheme.error, width: 1.5),
         ),
       ),
-
-      // ─────────────────────────────────────────────────────────────
-      // NavigationBar — Barra de navegação no tema escuro
-      // ─────────────────────────────────────────────────────────────
       navigationBarTheme: NavigationBarThemeData(
-        elevation: 2,
-        height: 72,
-        indicatorColor: colorScheme.secondaryContainer,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        height: 76,
+        backgroundColor: _darkColorScheme.surface,
+        indicatorColor: _darkColorScheme.primaryContainer,
+        labelTextStyle: WidgetStatePropertyAll(
+          textTheme.labelMedium?.copyWith(color: _darkColorScheme.onSurface),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: primary);
+          }
+          return IconThemeData(color: _darkColorScheme.onSurfaceVariant);
+        }),
       ),
-
-      // ─────────────────────────────────────────────────────────────
-      // Divider — Separador com opacidade reduzida no tema escuro
-      // ─────────────────────────────────────────────────────────────
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: primary,
+        foregroundColor: Colors.white,
+      ),
       dividerTheme: DividerThemeData(
-        color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+        color: _darkColorScheme.outlineVariant,
         thickness: 1,
         space: 1,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: _darkColorScheme.surfaceContainerHighest,
+        selectedColor: _darkColorScheme.primaryContainer,
+        disabledColor: _darkColorScheme.outlineVariant,
+        side: BorderSide.none,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_radius),
+        ),
+        labelStyle: textTheme.labelMedium ?? const TextStyle(),
       ),
     );
   }

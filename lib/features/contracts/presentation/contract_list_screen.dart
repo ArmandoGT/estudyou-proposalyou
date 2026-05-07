@@ -75,6 +75,7 @@ class ContractListScreen extends ConsumerWidget {
             ContractListLoaded(:final contracts) => RefreshIndicator(
               onRefresh: () => ref.read(contractListProvider.notifier).refresh(),
               child: ListView.builder(
+                padding: const EdgeInsets.only(bottom: 120),
                 itemCount: contracts.length,
                 itemBuilder: (ctx, i) {
                   final c = contracts[i];

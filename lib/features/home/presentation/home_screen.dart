@@ -82,23 +82,95 @@ class _DashboardContent extends StatelessWidget {
         Text('Ações Rápidas', style: theme.textTheme.titleMedium),
         const SizedBox(height: 12),
         Row(children: [
-          Expanded(child: OutlinedButton.icon(
-            onPressed: () => context.push('/proposals/new/step1'),
-            icon: const Icon(Icons.article_outlined),
-            label: const Text('Nova Proposta'),
-          )),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => context.push('/proposals/new/step1'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F172A),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(Icons.article_outlined, color: Colors.white),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Nova Proposta',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(width: 8),
-          Expanded(child: OutlinedButton.icon(
-            onPressed: () => context.push('/contracts/new'),
-            icon: const Icon(Icons.handshake_outlined),
-            label: const Text('Novo Contrato'),
-          )),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => context.push('/contracts/new'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F172A),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(Icons.handshake_outlined, color: Colors.white),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Novo Contrato',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(width: 8),
-          Expanded(child: OutlinedButton.icon(
-            onPressed: () => context.push('/clients/new'),
-            icon: const Icon(Icons.person_add_outlined),
-            label: const Text('Novo Cliente'),
-          )),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => context.push('/clients/new'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F172A),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(Icons.person_add_outlined, color: Colors.white),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Novo Cliente',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ]),
         const SizedBox(height: 24),
 
@@ -127,7 +199,7 @@ class _MetricCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         child: Column(children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
@@ -135,9 +207,16 @@ class _MetricCard extends StatelessWidget {
             fontWeight: FontWeight.bold, color: color,
           )),
           const SizedBox(height: 4),
-          Text(label, style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          )),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         ]),
       ),
     );
