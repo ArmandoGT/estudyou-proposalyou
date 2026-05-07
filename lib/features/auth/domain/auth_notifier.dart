@@ -73,6 +73,7 @@ class LoginNotifier extends _$LoginNotifier {
     } on AuthApiException catch (e) {
       state = LoginError(e.toAppException().toUserMessage());
     } catch (e, st) {
+      // ignore: avoid_print
       print('LOGIN ERRO INESPERADO: $e\n$st');
       state = LoginError('Erro inesperado: $e');
     }

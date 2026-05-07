@@ -59,7 +59,7 @@ class _ProposalStep1ScreenState extends ConsumerState<ProposalStep1Screen> {
     _init(state.draft);
     if (_selectedClient == null && widget.initialClient != null) {
       _selectedClient = widget.initialClient;
-    } else if (_selectedClient == null && state.draft.clientId.isNotEmpty && clientsState is ClientListLoaded) {
+    } else if (_selectedClient == null && state.draft.clientId?.isNotEmpty == true && clientsState is ClientListLoaded) {
       try {
         _selectedClient = clientsState.clients.firstWhere((c) => c.id == state.draft.clientId);
       } catch (_) {}

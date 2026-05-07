@@ -58,8 +58,11 @@ class ProposalRepository {
         code: 'proposal_locked',
       );
     }
+    if (dto.id == null || dto.id!.isEmpty) {
+      throw const ValidationException('ID da proposta não informado para atualização.');
+    }
     try {
-      final data = await _table.update(dto.toJson()).eq('id', dto.id)
+      final data = await _table.update(dto.toJson()).eq('id', dto.id!)
           .select().single();
       return ProposalDto.fromJson(data);
     } on PostgrestException catch (e) {

@@ -72,18 +72,7 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     final isNew = widget.clientId == 'new';
     final state = ref.watch(clientDetailProvider(isNew ? null : widget.clientId));
 
-    ref.listen(clientDetailProvider(isNew ? null : widget.clientId), (_, s) {
-      if (s is ClientDetailSaved) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cliente salvo com sucesso!')),
-        );
-        context.pop();
-      } else if (s is ClientDetailError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(s.message), backgroundColor: theme.colorScheme.error),
-        );
-      }
-    });
+    // Listener removido, feedback gerado diretamente no onPressed (_save)
 
     return Scaffold(
       appBar: AppBar(title: Text(isNew ? 'Novo Cliente' : 'Editar Cliente')),
@@ -225,8 +214,12 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
     );
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    // Fecha o teclado para dar foco no processamento visual (melhor UX)
+    FocusScope.of(context).unfocus();
+    
     final isNew = widget.clientId == 'new';
     final state = ref.read(clientDetailProvider(isNew ? null : widget.clientId));
     if (state is! ClientDetailLoaded) return;
@@ -246,6 +239,36 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
       },
     );
 
-    ref.read(clientDetailProvider(isNew ? null : widget.clientId).notifier).saveClient(updated);
+    try {
+      // Chamada assíncrona ao provider
+      await ref.read(clientDetailProvider(isNew ? null : widget.clientId).notifier).saveClient(updated);
+
+      if (!mounted) return;
+
+      // Feedback visual OBRIGATÓRIO de SUCESSO!
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cliente salvo com sucesso!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      // Voltar à lista de clientes
+      context.pop();
+
+    } catch (e) {
+      if (!mounted) return;
+
+      // Feedback visual OBRIGATÓRIO de ERRO! Nenhuma falha passará em branco.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Falha ao salvar: ${e.toString().replaceAll("Exception: ", "")}'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 }

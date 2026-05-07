@@ -2,11 +2,11 @@
 
 /// DTO da tabela `proposals` — propostas comerciais.
 class ProposalDto {
-  final String id;
-  final String providerId;
-  final String clientId;
+  final String? id;
+  final String? providerId;
+  final String? clientId;
   final String? templateId;
-  final String status; // proposta_status
+  final String? status; // proposta_status
   final DateTime? validade;
   final List<Map<String, dynamic>> itensJson;
   final double total;
@@ -23,11 +23,11 @@ class ProposalDto {
   final String? providerEmpresa;
 
   const ProposalDto({
-    required this.id,
-    required this.providerId,
-    required this.clientId,
+    this.id,
+    this.providerId,
+    this.clientId,
     this.templateId,
-    required this.status,
+    this.status,
     this.validade,
     this.itensJson = const [],
     this.total = 0,
@@ -57,9 +57,9 @@ class ProposalDto {
     final clientData = json['client'] as Map<String, dynamic>?;
 
     return ProposalDto(
-      id: json['id'] as String,
-      providerId: json['provider_id'] as String,
-      clientId: json['client_id'] as String,
+      id: json['id'] as String?,
+      providerId: json['provider_id'] as String?,
+      clientId: json['client_id'] as String?,
       templateId: json['template_id'] as String?,
       status: json['status'] as String? ?? 'rascunho',
       validade: json['validade'] != null
@@ -72,25 +72,30 @@ class ProposalDto {
       versao: json['versao'] as int? ?? 1,
       shareToken: json['share_token'] as String?,
       pdfUrl: json['pdf_url'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : DateTime.now(),
+      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : DateTime.now(),
       clienteNome: clientData?['nome'] as String?,
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'provider_id': providerId,
-        'client_id': clientId,
-        'template_id': templateId,
-        'status': status,
-        'validade': validade?.toIso8601String().split('T').first,
-        'itens_json': itensJson,
-        'total': total,
-        'desconto': desconto,
-        'observacoes': observacoes,
-        'versao': versao,
-      };
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'provider_id': (providerId != null && providerId!.trim().isNotEmpty) ? providerId : null,
+      'client_id': (clientId != null && clientId!.trim().isNotEmpty) ? clientId : null,
+      'template_id': (templateId != null && templateId!.trim().isNotEmpty) ? templateId : null,
+      'status': status ?? 'rascunho',
+      'validade': validade?.toIso8601String().split('T').first,
+      'itens_json': itensJson,
+      'total': total,
+      'desconto': desconto,
+      'observacoes': observacoes,
+      'versao': versao,
+    };
+    if (id != null && id!.trim().isNotEmpty) {
+      map['id'] = id;
+    }
+    return map;
+  }
 
   ProposalDto copyWith({
     String? id, String? providerId, String? clientId, String? templateId,

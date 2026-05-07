@@ -72,8 +72,7 @@ class ClientListScreen extends ConsumerWidget {
                 itemBuilder: (ctx, i) {
                   final c = clients[i];
                   return Dismissible(
-                    key: Key(c.id),
-                    direction: DismissDirection.endToStart,
+key: Key(c.id ?? 'cliente_sem_id_${c.hashCode}'),
                     background: Container(
                       color: theme.colorScheme.error,
                       alignment: Alignment.centerRight,
@@ -93,8 +92,11 @@ class ClientListScreen extends ConsumerWidget {
                         ),
                       );
                     },
-                    onDismissed: (_) => ref.read(clientListProvider.notifier).archive(c.id),
-                    child: ListTile(
+onDismissed: (_) {
+  if (c.id != null) {
+    ref.read(clientListProvider.notifier).archive(c.id!); 
+  }
+},                    child: ListTile(
                       leading: CircleAvatar(
                         backgroundColor: c.isPessoaFisica
                             ? theme.colorScheme.primaryContainer

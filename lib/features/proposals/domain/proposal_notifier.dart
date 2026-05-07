@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../data/dtos/proposal_dto.dart';
 import '../../../data/repositories/proposal_repository.dart';
 import 'proposal_state.dart';
@@ -126,7 +127,7 @@ class ProposalWizardNotifier extends _$ProposalWizardNotifier {
 
   ProposalWizardState _createInitialState() {
     final draft = ProposalDto(
-      id: '', providerId: '', clientId: '',
+      id: null, providerId: '', clientId: '',
       itensJson: [], total: 0.0, status: 'rascunho', validade: null,
       createdAt: DateTime.now(), updatedAt: DateTime.now(),
     );
@@ -159,12 +160,20 @@ class ProposalWizardNotifier extends _$ProposalWizardNotifier {
   }
 
   Future<void> save(ProposalDto finalDraft, {bool isNew = true}) async {
-    state = const ProposalWizardSaving();
     try {
       final repo = ref.read(proposalRepositoryProvider);
+      
+      // Injeta o provedor ativo caso esteja nulo ou vazio (essencial para RLS)
+      var draftToSave = finalDraft;
+      if (draftToSave.providerId == null || draftToSave.providerId!.isEmpty) {
+        final authService = ref.read(authServiceProvider.notifier);
+        final activeProviderId = await authService.getActiveProviderId();
+        draftToSave = draftToSave.copyWith(providerId: activeProviderId);
+      }
+
       ProposalDto saved;
       if (isNew) {
-        final json = finalDraft.toJson()..remove('id');
+        final json = draftToSave.toJson()..remove('id');
         saved = await repo.create(ProposalDto.fromJson({
           ...json,
           'created_at': DateTime.now().toIso8601String(),
@@ -174,8 +183,10 @@ class ProposalWizardNotifier extends _$ProposalWizardNotifier {
         saved = await repo.update(finalDraft);
       }
       state = ProposalWizardSuccess(saved);
-    } on AppException catch (e) {
-      state = ProposalWizardError(e.toUserMessage(), finalDraft);
+    } catch (e) {
+      // Retorna ao estado anterior com os dados intactos
+      state = ProposalWizardStep3(finalDraft);
+      throw Exception('Erro ao gerar proposta: $e');
     }
   }
 

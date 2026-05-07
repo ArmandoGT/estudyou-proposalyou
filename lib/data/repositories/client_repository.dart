@@ -48,10 +48,16 @@ class ClientRepository {
   }
 
   Future<ClientDto> update(ClientDto dto) async {
+    // 1. Blindagem: Impede requisições fantasmas no Supabase
+    if (dto.id == null) {
+      throw const ValidationException('Falha de integridade: Não é possível atualizar um cliente sem ID.', code: 'missing_id');
+    }
+
     try {
       final data = await _table
           .update(dto.toJson())
-          .eq('id', dto.id)
+          // ! justificado: O ID foi validado e garantido na linha acima
+          .eq('id', dto.id!) 
           .select()
           .single();
       return ClientDto.fromJson(data);

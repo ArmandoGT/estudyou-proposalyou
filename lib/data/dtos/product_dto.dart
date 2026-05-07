@@ -2,8 +2,8 @@
 
 /// DTO da tabela `products` — catálogo de produtos/serviços.
 class ProductDto {
-  final String id;
-  final String providerId;
+  final String? id;
+  final String? providerId;
   final String nome;
   final String? descricao;
   final double preco;
@@ -15,8 +15,8 @@ class ProductDto {
   final DateTime? archivedAt;
 
   const ProductDto({
-    required this.id,
-    required this.providerId,
+    this.id,
+    this.providerId,
     required this.nome,
     this.descricao,
     required this.preco,
@@ -29,8 +29,8 @@ class ProductDto {
   });
 
   factory ProductDto.fromJson(Map<String, dynamic> json) => ProductDto(
-        id: json['id'] as String,
-        providerId: json['provider_id'] as String,
+        id: json['id'] as String?,
+        providerId: json['provider_id'] as String?,
         nome: json['nome'] as String,
         descricao: json['descricao'] as String?,
         preco: (json['preco'] as num).toDouble(),
@@ -44,16 +44,23 @@ class ProductDto {
             : null,
       );
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'provider_id': providerId,
-        'nome': nome,
-        'descricao': descricao,
-        'preco': preco,
-        'tipo': tipo,
-        'unidade': unidade,
-        'ativo': ativo,
-      };
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'nome': nome,
+      'descricao': descricao,
+      'preco': preco,
+      'tipo': tipo,
+      'unidade': unidade,
+      'ativo': ativo,
+    };
+    if (id != null && id!.trim().isNotEmpty) {
+      map['id'] = id;
+    }
+    if (providerId != null && providerId!.trim().isNotEmpty) {
+      map['provider_id'] = providerId;
+    }
+    return map;
+  }
 
   ProductDto copyWith({
     String? id, String? providerId, String? nome, String? descricao,

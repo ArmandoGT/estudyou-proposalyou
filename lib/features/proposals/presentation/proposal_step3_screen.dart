@@ -11,23 +11,20 @@ import '../domain/proposal_state.dart';
 final _brl = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 final _date = DateFormat('dd/MM/yyyy');
 
-class ProposalStep3Screen extends ConsumerWidget {
+class ProposalStep3Screen extends ConsumerStatefulWidget {
   const ProposalStep3Screen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProposalStep3Screen> createState() => _ProposalStep3ScreenState();
+}
+
+class _ProposalStep3ScreenState extends ConsumerState<ProposalStep3Screen> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = ref.watch(proposalWizardProvider);
-
-    ref.listen(proposalWizardProvider, (_, s) {
-      if (s is ProposalWizardSuccess) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Proposta salva!')));
-        context.go('/proposals/${s.proposal.id}');
-        ref.read(proposalWizardProvider.notifier).reset();
-      } else if (s is ProposalWizardError) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.message), backgroundColor: theme.colorScheme.error));
-      }
-    });
 
     if (state is! ProposalWizardStep3 && state is! ProposalWizardSaving && state is! ProposalWizardError) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -56,7 +53,7 @@ class ProposalStep3Screen extends ConsumerWidget {
                     const Divider(),
                     _InfoRow('Observações:', draft.observacoes ?? 'Nenhuma'),
                     _InfoRow('Validade:', draft.validade != null ? _date.format(draft.validade!) : 'Sem validade'),
-                    _InfoRow('Status Inicial:', draft.status.toUpperCase()),
+                    _InfoRow('Status Inicial:', (draft.status ?? 'rascunho').toUpperCase()),
                   ],
                 ),
               ),
@@ -105,7 +102,7 @@ class ProposalStep3Screen extends ConsumerWidget {
           child: Row(children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: state is ProposalWizardSaving ? null : () {
+                onPressed: _isLoading ? null : () {
                   ref.read(proposalWizardProvider.notifier).goToStep(2, draft);
                   context.pop();
                 },
@@ -116,13 +113,29 @@ class ProposalStep3Screen extends ConsumerWidget {
             Expanded(
               flex: 2,
               child: FilledButton.icon(
-                onPressed: state is ProposalWizardSaving ? null : () {
-                  ref.read(proposalWizardProvider.notifier).save(draft, isNew: draft.id.isEmpty);
+                onPressed: _isLoading ? null : () async {
+                  setState(() => _isLoading = true);
+                  try {
+                    await ref.read(proposalWizardProvider.notifier).save(draft, isNew: draft.id == null || draft.id!.isEmpty);
+                    if (!context.mounted) return;
+                    
+                    final currentState = ref.read(proposalWizardProvider);
+                    if (currentState is ProposalWizardSuccess) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Proposta salva com sucesso!'), backgroundColor: Colors.green));
+                      context.go('/proposals/${currentState.proposal.id}');
+                      ref.read(proposalWizardProvider.notifier).reset();
+                    }
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll("Exception: ", "")), backgroundColor: Colors.redAccent));
+                  } finally {
+                    if (mounted) setState(() => _isLoading = false);
+                  }
                 },
-                icon: state is ProposalWizardSaving 
+                icon: _isLoading 
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.save),
-                label: Text(state is ProposalWizardSaving ? 'Salvando...' : 'Salvar Proposta'),
+                label: Text(_isLoading ? 'Salvando...' : 'Salvar Proposta'),
               ),
             ),
           ]),

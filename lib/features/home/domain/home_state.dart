@@ -50,8 +50,8 @@ class RecentItem {
   });
 
   factory RecentItem.fromProposal(ProposalDto p) => RecentItem(
-        id: p.id, tipo: 'proposta', clienteNome: p.clienteNome ?? 'N/A',
-        status: p.status, total: p.total, updatedAt: p.updatedAt,
+        id: p.id ?? '', tipo: 'proposta', clienteNome: p.clienteNome ?? 'N/A',
+        status: p.status ?? 'rascunho', total: p.total, updatedAt: p.updatedAt,
       );
 
   factory RecentItem.fromContract(ContractDto c) => RecentItem(

@@ -46,7 +46,7 @@ class ProposalDetailScreen extends ConsumerWidget {
               Text('Proposta de ${proposal.clienteNome ?? 'Desconhecido'}', style: theme.textTheme.headlineSmall),
               const SizedBox(height: 8),
               Row(children: [
-                _StatusBadge(status: proposal.status),
+                _StatusBadge(status: proposal.status ?? 'rascunho'),
                 const Spacer(),
                 Text('Criada em ${_date.format(proposal.createdAt)}', style: theme.textTheme.bodySmall),
               ]),

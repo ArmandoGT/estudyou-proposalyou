@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../data/dtos/client_dto.dart';
 import '../../../data/repositories/client_repository.dart';
 import 'client_state.dart';
@@ -140,7 +141,7 @@ class ClientDetailNotifier extends _$ClientDetailNotifier {
     }
   }
 
-  /// Salva (insert ou update) o cliente.
+  /// Salva (insert ou update) o cliente repassando a resposta (sucesso/erro) para a UI.
   Future<void> saveClient(ClientDto dto) async {
     final currentState = state;
     if (currentState is! ClientDetailLoaded) return;
@@ -149,20 +150,37 @@ class ClientDetailNotifier extends _$ClientDetailNotifier {
 
     try {
       final repo = ref.read(clientRepositoryProvider);
+      
+      // Injeta o ID do provider ativo da sessão
+      final authService = ref.read(authServiceProvider.notifier);
+      final activeProviderId = await authService.getActiveProviderId();
+      
+      final dtoToSave = dto.copyWith(providerId: activeProviderId);
+
       ClientDto saved;
       if (currentState.isNew) {
-        final json = dto.toJson()..remove('id');
+        final json = dtoToSave.toJson()..remove('id');
         saved = await repo.create(ClientDto.fromJson({
           ...json,
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         }));
       } else {
-        saved = await repo.update(dto);
+        saved = await repo.update(dtoToSave);
       }
+      
+      // Em caso de sucesso, atualizamos o estado
       state = ClientDetailSaved(saved);
-    } on AppException catch (e) {
-      state = ClientDetailError(e.toUserMessage());
+      
+    } catch (e) {
+      // ignore: avoid_print
+      print('Erro crítico ao salvar cliente no Supabase: $e');
+      
+      // Restaura o estado para permitir nova tentativa
+      state = ClientDetailLoaded(client: dto, isNew: currentState.isNew, isSaving: false);
+      
+      // Lança a exceção novamente para que a camada de Apresentação (UI) a intercepte
+      throw Exception('Não foi possível salvar o cliente. Detalhes: $e');
     }
   }
 

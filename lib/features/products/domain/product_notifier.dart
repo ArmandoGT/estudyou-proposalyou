@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../data/dtos/product_dto.dart';
 import '../../../data/repositories/product_repository.dart';
 import 'product_state.dart';
@@ -130,20 +131,31 @@ class ProductDetailNotifier extends _$ProductDetailNotifier {
 
     try {
       final repo = ref.read(productRepositoryProvider);
+      
+      final authService = ref.read(authServiceProvider.notifier);
+      final activeProviderId = await authService.getActiveProviderId();
+      
+      final dtoToSave = dto.copyWith(providerId: activeProviderId);
+
       ProductDto saved;
       if (currentState.isNew) {
-        final json = dto.toJson()..remove('id');
+        final json = dtoToSave.toJson()..remove('id');
         saved = await repo.create(ProductDto.fromJson({
           ...json,
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         }));
       } else {
-        saved = await repo.update(dto);
+        saved = await repo.update(dtoToSave);
       }
       state = ProductDetailSaved(saved);
-    } on AppException catch (e) {
-      state = ProductDetailError(e.toUserMessage());
+    } catch (e) {
+      // ignore: avoid_print
+      print('Erro crítico ao salvar produto no Supabase: $e');
+      
+      state = ProductDetailLoaded(product: dto, isNew: currentState.isNew, isSaving: false);
+      
+      throw Exception('Não foi possível salvar o produto. Detalhes: $e');
     }
   }
 }

@@ -85,14 +85,14 @@ class ProposalListScreen extends ConsumerWidget {
                       child: Icon(Icons.article, color: theme.colorScheme.onPrimaryContainer),
                     ),
                     title: Text('Proposta de ${p.clienteNome ?? 'Desconhecido'}'),
-                    subtitle: Text('ID: ${p.id.substring(0,8)} • ${_dateFormat.format(p.updatedAt)}'),
+                    subtitle: Text('ID: ${p.id?.substring(0,8) ?? 'Novo'} • ${_dateFormat.format(p.updatedAt)}'),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(_brlFormat.format(p.total), style: theme.textTheme.titleSmall),
                         const SizedBox(height: 4),
-                        _StatusBadge(status: p.status),
+                        _StatusBadge(status: p.status ?? 'rascunho'),
                       ],
                     ),
                     onTap: () => context.push('/proposals/${p.id}'),

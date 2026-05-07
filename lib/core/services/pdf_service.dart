@@ -49,7 +49,7 @@ class PdfService {
           // Informações gerais
           _buildInfoRow('Cliente', proposal.clienteNome ?? 'N/A'),
           _buildInfoRow('Versão', 'v${proposal.versao}'),
-          _buildInfoRow('Status', proposal.status.toUpperCase()),
+          _buildInfoRow('Status', (proposal.status ?? 'rascunho').toUpperCase()),
           if (proposal.validade != null)
             _buildInfoRow('Validade', _dateFormat.format(proposal.validade!)),
           pw.SizedBox(height: 16),

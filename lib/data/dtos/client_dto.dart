@@ -2,8 +2,8 @@
 
 /// DTO da tabela `clients` — clientes PF/PJ.
 class ClientDto {
-  final String id;
-  final String providerId;
+  final String? id;
+  final String? providerId;
   final String nome;
   final String cpfCnpj;
   final String? email;
@@ -14,8 +14,8 @@ class ClientDto {
   final DateTime? archivedAt;
 
   const ClientDto({
-    required this.id,
-    required this.providerId,
+    this.id,
+    this.providerId,
     required this.nome,
     required this.cpfCnpj,
     this.email,
@@ -32,8 +32,8 @@ class ClientDto {
   bool get isArchived => archivedAt != null;
 
   factory ClientDto.fromJson(Map<String, dynamic> json) => ClientDto(
-        id: json['id'] as String,
-        providerId: json['provider_id'] as String,
+        id: json['id'] as String?,
+        providerId: json['provider_id'] as String?,
         nome: json['nome'] as String,
         cpfCnpj: json['cpf_cnpj'] as String,
         email: json['email'] as String?,
@@ -46,15 +46,22 @@ class ClientDto {
             : null,
       );
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'provider_id': providerId,
-        'nome': nome,
-        'cpf_cnpj': cpfCnpj,
-        'email': email,
-        'telefone': telefone,
-        'endereco': endereco,
-      };
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'nome': nome,
+      'cpf_cnpj': cpfCnpj,
+      'email': email,
+      'telefone': telefone,
+      'endereco': endereco,
+    };
+    if (id != null && id!.trim().isNotEmpty) {
+      map['id'] = id;
+    }
+    if (providerId != null && providerId!.trim().isNotEmpty) {
+      map['provider_id'] = providerId;
+    }
+    return map;
+  }
 
   ClientDto copyWith({
     String? id,

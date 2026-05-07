@@ -26,6 +26,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   String _tipo = 'produto';
   bool _ativo = true;
   bool _initialized = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -50,18 +51,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     final isNew = widget.productId == 'new';
     final state = ref.watch(productDetailProvider(isNew ? null : widget.productId));
 
-    ref.listen(productDetailProvider(isNew ? null : widget.productId), (_, s) {
-      if (s is ProductDetailSaved) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Salvo com sucesso!')),
-        );
-        context.pop();
-      } else if (s is ProductDetailError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(s.message), backgroundColor: theme.colorScheme.error),
-        );
-      }
-    });
+    // Listener removido para tratamento direto no _save com bloco finally
 
     return Scaffold(
       appBar: AppBar(title: Text(isNew ? 'Novo Item' : 'Editar Item')),
@@ -138,8 +128,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             const SizedBox(height: 24),
 
             FilledButton(
-              onPressed: isSaving ? null : _save,
-              child: isSaving
+              onPressed: (_isLoading || isSaving) ? null : _save,
+              child: (_isLoading || isSaving)
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Text('Salvar'),
             ),
@@ -149,11 +139,16 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    FocusScope.of(context).unfocus();
+    
     final isNew = widget.productId == 'new';
     final state = ref.read(productDetailProvider(isNew ? null : widget.productId));
     if (state is! ProductDetailLoaded) return;
+
+    setState(() => _isLoading = true);
 
     final updated = state.product.copyWith(
       nome: _nomeCtrl.text.trim(),
@@ -164,6 +159,38 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       ativo: _ativo,
     );
 
-    ref.read(productDetailProvider(isNew ? null : widget.productId).notifier).saveProduct(updated);
+    try {
+      await ref.read(productDetailProvider(isNew ? null : widget.productId).notifier).saveProduct(updated);
+
+      if (!mounted) return;
+
+      ref.invalidate(productListProvider);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Produto salvo com sucesso!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      context.pop();
+
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Falha ao salvar: ${e.toString().replaceAll("Exception: ", "")}'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }

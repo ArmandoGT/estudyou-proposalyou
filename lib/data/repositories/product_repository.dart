@@ -45,8 +45,11 @@ class ProductRepository {
   }
 
   Future<ProductDto> update(ProductDto dto) async {
+    if (dto.id == null || dto.id!.trim().isEmpty) {
+      throw const ValidationException('ID do produto é obrigatório para atualização', code: 'missing_id');
+    }
     try {
-      final data = await _table.update(dto.toJson()).eq('id', dto.id).select().single();
+      final data = await _table.update(dto.toJson()).eq('id', dto.id!).select().single();
       return ProductDto.fromJson(data);
     } on PostgrestException catch (e) {
       throw e.toAppException();
