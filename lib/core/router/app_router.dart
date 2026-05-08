@@ -26,11 +26,13 @@ import '../../features/contracts/presentation/contract_detail_screen.dart';
 import '../../features/contracts/presentation/contract_list_screen.dart';
 import '../../features/contracts/presentation/contract_step1_screen.dart';
 import '../../features/contracts/presentation/contract_step2_screen.dart';
+import '../../features/contracts/presentation/contract_step3_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/products/presentation/product_detail_screen.dart';
 import '../../features/products/presentation/product_list_screen.dart';
 import '../../features/proposals/presentation/proposal_detail_screen.dart';
 import '../../features/proposals/presentation/proposal_list_screen.dart';
+import '../../features/proposals/presentation/proposal_public_screen.dart';
 import '../../features/proposals/presentation/proposal_step1_screen.dart';
 import '../../features/proposals/presentation/proposal_step2_screen.dart';
 import '../../features/proposals/presentation/proposal_step3_screen.dart';
@@ -64,8 +66,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final bool isGoingToLogin = state.matchedLocation == '/login';
       final bool isGoingToSplash = state.matchedLocation == '/splash';
       final bool isPublicSignature = state.matchedLocation.startsWith('/s/');
+      final bool isPublicProposal = state.matchedLocation.startsWith('/p/');
 
-      if (isGoingToSplash || isPublicSignature) return null;
+      if (isGoingToSplash || isPublicSignature || isPublicProposal) return null;
 
       if (!isAuthenticated && !isGoingToLogin) return '/login';
       if (isAuthenticated && isGoingToLogin) return '/home';
@@ -91,9 +94,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
-        path: '/s/:contractId',
+        path: '/p/:shareToken',
+        builder: (context, state) => ProposalPublicScreen(
+          shareToken: state.pathParameters['shareToken']!,
+        ),
+      ),
+      GoRoute(
+        path: '/s/:shareToken',
         builder: (context, state) => SignaturePublicScreen(
-          contractId: state.pathParameters['contractId']!,
+          shareToken: state.pathParameters['shareToken']!,
         ),
       ),
       
@@ -124,6 +133,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       
       GoRoute(path: '/contracts/new/step1', builder: (context, state) => const ContractStep1Screen()),
       GoRoute(path: '/contracts/new/step2', builder: (context, state) => const ContractStep2Screen()),
+      GoRoute(path: '/contracts/new/step3', builder: (context, state) => const ContractStep3Screen()),
       GoRoute(path: '/contracts/:id', builder: (context, state) => ContractDetailScreen(contractId: state.pathParameters['id']!)),
     ],
   );

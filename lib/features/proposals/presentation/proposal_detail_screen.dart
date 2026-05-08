@@ -1,10 +1,10 @@
 // lib/features/proposals/presentation/proposal_detail_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/share_service.dart';
 import '../domain/proposal_notifier.dart';
 import '../domain/proposal_state.dart';
 
@@ -116,13 +116,14 @@ class ProposalDetailScreen extends ConsumerWidget {
                           TextButton.icon(
                             icon: const Icon(Icons.copy, size: 16),
                             label: const Text('Copiar Link'),
-                            onPressed: () {
-                              final url = proposal.shareToken?.isNotEmpty == true
-                                  ? 'https://app.estudyou.com.br/p/${proposal.shareToken}'
-                                  : 'https://app.estudyou.com.br/p/${proposal.id}';
-                              Clipboard.setData(ClipboardData(text: url));
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link copiado!')));
-                            },
+                            onPressed: proposal.shareToken?.isNotEmpty == true
+                                ? () async {
+                                    final url = ref.read(shareServiceProvider).proposalLink(proposal);
+                                    await ref.read(shareServiceProvider).copyLinkToClipboard(url);
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link copiado!')));
+                                  }
+                                : null,
                           ),
                         ],
                       ),

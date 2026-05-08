@@ -1,10 +1,10 @@
 // lib/features/contracts/presentation/contract_detail_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/share_service.dart';
 import '../domain/contract_notifier.dart';
 import '../domain/contract_state.dart';
 
@@ -92,13 +92,14 @@ class ContractDetailScreen extends ConsumerWidget {
                           TextButton.icon(
                             icon: const Icon(Icons.copy, size: 16),
                             label: const Text('Copiar Link'),
-                            onPressed: () {
-                              final url = contract.shareToken?.isNotEmpty == true 
-                                  ? 'https://app.estudyou.com.br/s/${contract.shareToken}' 
-                                  : 'https://app.estudyou.com.br/s/${contract.id}'; // Fallback / Fake
-                              Clipboard.setData(ClipboardData(text: url));
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link copiado!')));
-                            },
+                            onPressed: contract.shareToken?.isNotEmpty == true
+                                ? () async {
+                                    final url = ref.read(shareServiceProvider).contractSignLink(contract);
+                                    await ref.read(shareServiceProvider).copyLinkToClipboard(url);
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link copiado!')));
+                                  }
+                                : null,
                           ),
                         ],
                       ),

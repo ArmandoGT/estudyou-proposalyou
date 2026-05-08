@@ -24,11 +24,11 @@ class ShareService {
 
   /// Gera o deep link público para visualização de proposta.
   String proposalLink(ProposalDto proposal) =>
-      '$_baseUrl/proposals/${proposal.shareToken}';
+      '$_baseUrl/p/${proposal.shareToken}';
 
   /// Gera o deep link público para assinatura de contrato.
   String contractSignLink(ContractDto contract) =>
-      '$_baseUrl/sign/${contract.shareToken}';
+      '$_baseUrl/s/${contract.shareToken}';
 
   /// Compartilha proposta via share nativo (WhatsApp, email, etc.)
   Future<void> shareProposal(ProposalDto proposal) async {

@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../data/dtos/contract_dto.dart';
 import '../../../data/dtos/proposal_dto.dart';
 import '../../../data/repositories/contract_repository.dart';
@@ -152,26 +153,37 @@ class ContractWizardNotifier extends _$ContractWizardNotifier {
   void goToStep(int step, ContractDto draft, {ProposalDto? proposal}) {
     if (step == 1) state = ContractWizardStep1(draft, selectedProposal: proposal);
     if (step == 2) state = ContractWizardStep2(draft, selectedProposal: proposal);
+    if (step == 3) state = ContractWizardStep3(draft, selectedProposal: proposal);
   }
 
-  Future<void> save(ContractDto finalDraft, {bool isNew = true}) async {
+  Future<void> save(ContractDto finalDraft, {bool isNew = true, ProposalDto? proposal}) async {
     state = const ContractWizardSaving();
     try {
       final repo = ref.read(contractRepositoryProvider);
+      var draftToSave = finalDraft;
+      if (draftToSave.providerId.isEmpty) {
+        final authService = ref.read(authServiceProvider.notifier);
+        final activeProviderId = await authService.getActiveProviderId();
+        draftToSave = draftToSave.copyWith(providerId: activeProviderId ?? '');
+      }
+
       ContractDto saved;
       if (isNew) {
-        final json = finalDraft.toJson()..remove('id')..remove('pdf_url')..remove('hash_documento');
+        final json = draftToSave.toJson()..remove('id')..remove('pdf_url')..remove('hash_documento');
         saved = await repo.create(ContractDto.fromJson({
           ...json,
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         }));
       } else {
-        saved = await repo.update(finalDraft);
+        saved = await repo.update(draftToSave);
       }
       state = ContractWizardSuccess(saved);
     } on AppException catch (e) {
       state = ContractWizardError(e.toUserMessage(), finalDraft);
+      if (proposal != null) {
+        state = ContractWizardStep3(finalDraft, selectedProposal: proposal);
+      }
     }
   }
 

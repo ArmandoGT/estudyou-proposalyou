@@ -24,6 +24,19 @@ final class SignatureSuccess extends SignatureState {
   const SignatureSuccess(this.contract, this.certificateUrl);
 }
 
+final class SignatureAlreadySigned extends SignatureState {
+  final ContractDto contract;
+  final String message;
+
+  const SignatureAlreadySigned(this.contract, this.message);
+}
+
+final class SignatureInvalidLink extends SignatureState {
+  final String message;
+
+  const SignatureInvalidLink(this.message);
+}
+
 final class SignatureError extends SignatureState {
   final String message;
   const SignatureError(this.message);

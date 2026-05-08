@@ -69,6 +69,12 @@ final class ContractWizardStep2 extends ContractWizardState {
   const ContractWizardStep2(this.draft, {this.selectedProposal});
 }
 
+final class ContractWizardStep3 extends ContractWizardState {
+  final ContractDto draft;
+  final ProposalDto? selectedProposal;
+  const ContractWizardStep3(this.draft, {this.selectedProposal});
+}
+
 final class ContractWizardSaving extends ContractWizardState {
   const ContractWizardSaving();
 }
