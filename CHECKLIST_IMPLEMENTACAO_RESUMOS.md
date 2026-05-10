@@ -156,40 +156,45 @@ Ressalvas:
 
 ### Fase 5
 #### Produtos
-- filtros por empresa
-- preview do item em linha de proposta
-- toggle ativo/inativo com UX final
+- sem pendências relevantes no bloco principal
 
 #### Configurações
-- dados do usuário logado
-- troca de senha
-- empresa padrão ativa
-- tema claro/escuro/sistema
 - notificações push
-- sobre + versão
 
 ### Fase 6
-- multi-empresa real mais profunda
-- offline-first completo
-- refinamento do PDF final
-- inserção visual real de assinaturas no PDF
-- storage final dos documentos
+#### Multi-empresa real
+- sem pendências relevantes no bloco principal
+
+#### Offline-first
+- realtime subscriptions
+- optimistic updates na UI
+- fila de mutações offline pendentes
+
+#### PDF e documento final
+- validação funcional completa em ambiente real
+- eventuais refinamentos finais de UX nas telas consumidoras
 
 ---
 
 ## Próximos passos recomendados
 Seguir exatamente nesta ordem:
-1. Fase 5.1 — Home/Dashboard
-2. Fase 5.2 — Produtos
-3. Fase 5.3 — Configurações
-4. Fase 6 — Base técnica e consistência
+1. Executar a bateria manual de testes em `CHECKLIST_IMPLEMENTACAO_TESTES.md`
+2. Corrigir eventuais falhas de validação funcional encontradas
+3. Fechar o restante da Fase 6.11:
+   - realtime subscriptions
+   - optimistic updates na UI
+   - fila de mutações offline pendentes
+4. Implementar notificações push quando a estratégia final estiver definida
 
 ---
 
 ## Resumo curto
-- Fase 1 implementada na base principal, com ressalvas de refinamento em PDF/UX
-- Fase 2 implementada na base principal, com ressalvas de refinamento visual
-- Fase 3 implementada em versão base
+- Fase 1 implementada na base principal
+- Fase 2 implementada na base principal
+- Fase 3 implementada em versão base funcional
 - Fase 4 concluída no código; resta apenas aplicar bucket/policies do logo no ambiente Supabase
-- Fase 5 avançou no bloco Home/Dashboard; próximos blocos são Produtos e Configurações
-- Projeto encerrado hoje com `flutter analyze` limpo
+- Fase 5 concluída no código, exceto notificações push
+- Fase 6.10 concluída no código com multi-empresa real e branding por tenant
+- Fase 6.11 avançada no código com offline-first incremental para Products, Clients, Proposals, Providers, Templates e Contracts
+- Fase 6.12 concluída no código com geração, upload, persistência e recuperação do documento final
+- Projeto segue com `flutter analyze` limpo; próximo passo é validação manual guiada pelo checklist de testes

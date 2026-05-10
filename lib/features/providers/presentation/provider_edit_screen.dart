@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../data/dtos/provider_dto.dart';
 import '../domain/provider_notifier.dart';
 
@@ -21,6 +22,7 @@ class ProviderEditScreen extends ConsumerStatefulWidget {
 
 class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _empresaCtrl = TextEditingController();
   final _razaoCtrl = TextEditingController();
   final _cnpjCtrl = TextEditingController();
   final _enderecoCtrl = TextEditingController();
@@ -43,7 +45,7 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
 
   @override
   void dispose() {
-    _razaoCtrl.dispose(); _cnpjCtrl.dispose(); _enderecoCtrl.dispose();
+    _empresaCtrl.dispose(); _razaoCtrl.dispose(); _cnpjCtrl.dispose(); _enderecoCtrl.dispose();
     _responsavelCtrl.dispose(); _emailCtrl.dispose(); _assinaturaCtrl.dispose();
     super.dispose();
   }
@@ -51,6 +53,7 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
   void _initForm(ProviderDto p) {
     if (_initialized) return;
     _initialized = true;
+    _empresaCtrl.text = p.empresa;
     _razaoCtrl.text = p.razaoSocial;
     _cnpjCtrl.text = p.cnpj;
     _enderecoCtrl.text = p.endereco ?? '';
@@ -63,10 +66,11 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isNew = widget.providerId == 'new';
     final asyncProvider = ref.watch(providerEditProvider(widget.providerId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Editar Prestador')),
+      appBar: AppBar(title: Text(isNew ? 'Nova empresa' : 'Editar empresa')),
       body: asyncProvider.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Erro: $e')),
@@ -79,7 +83,7 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 Center(
                   child: GestureDetector(
-                    onTap: _isUploadingLogo ? null : () => _pickAndUploadLogo(provider),
+                    onTap: isNew || _isUploadingLogo ? null : () => _pickAndUploadLogo(provider),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -107,15 +111,55 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  provider.empresa.toUpperCase(),
+                  _empresaCtrl.text.trim().isEmpty ? 'NOVA EMPRESA' : _empresaCtrl.text.trim().toUpperCase(),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.labelLarge,
                 ),
+                if (isNew) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'A logo poderá ser enviada depois que a empresa for criada.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
                 const SizedBox(height: 24),
 
-                TextFormField(controller: _razaoCtrl, decoration: const InputDecoration(labelText: 'Razão Social')),
+                TextFormField(
+                  controller: _empresaCtrl,
+                  decoration: const InputDecoration(labelText: 'Slug da empresa'),
+                  readOnly: !isNew,
+                  onChanged: (_) => setState(() {}),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Informe o slug da empresa';
+                    }
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 12),
-                TextFormField(controller: _cnpjCtrl, decoration: const InputDecoration(labelText: 'CNPJ'), readOnly: true),
+                TextFormField(
+                  controller: _razaoCtrl,
+                  decoration: const InputDecoration(labelText: 'Razão Social'),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Informe a razão social';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _cnpjCtrl,
+                  decoration: const InputDecoration(labelText: 'CNPJ'),
+                  readOnly: !isNew,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Informe o CNPJ';
+                    }
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 12),
                 TextFormField(controller: _enderecoCtrl, decoration: const InputDecoration(labelText: 'Endereço')),
                 const SizedBox(height: 12),
@@ -186,7 +230,7 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                FilledButton(onPressed: _save, child: const Text('Salvar')),
+                FilledButton(onPressed: _save, child: Text(isNew ? 'Criar empresa' : 'Salvar')),
               ]),
             ),
           );
@@ -250,23 +294,43 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
     }
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    final isNew = widget.providerId == 'new';
     final asyncState = ref.read(providerEditProvider(widget.providerId));
     final provider = asyncState.value;
     if (provider == null) return;
 
-    ref.read(providerEditProvider(widget.providerId).notifier).save(
-      provider.copyWith(
-        razaoSocial: _razaoCtrl.text.trim(),
-        endereco: _enderecoCtrl.text.trim(),
-        responsavel: _responsavelCtrl.text.trim(),
-        email: _emailCtrl.text.trim(),
-        assinaturaPadrao: _assinaturaCtrl.text.trim(),
-        corMarca: _selectedColor,
-      ),
+    final updated = provider.copyWith(
+      empresa: _empresaCtrl.text.trim().toLowerCase(),
+      razaoSocial: _razaoCtrl.text.trim(),
+      cnpj: _cnpjCtrl.text.trim(),
+      endereco: _enderecoCtrl.text.trim().isEmpty ? null : _enderecoCtrl.text.trim(),
+      responsavel: _responsavelCtrl.text.trim().isEmpty ? null : _responsavelCtrl.text.trim(),
+      email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
+      assinaturaPadrao: _assinaturaCtrl.text.trim().isEmpty ? null : _assinaturaCtrl.text.trim(),
+      corMarca: _selectedColor,
     );
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Salvo com sucesso!')));
-    context.pop();
+
+    try {
+      final saved = await ref.read(providerEditProvider(widget.providerId).notifier).save(
+            updated,
+            isNew: isNew,
+          );
+      ref.invalidate(providerListProvider);
+      if (isNew) {
+        await ref.read(authServiceProvider.notifier).switchActiveProvider(saved.empresa);
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isNew ? 'Empresa criada com sucesso!' : 'Empresa salva com sucesso!')),
+      );
+      context.pop();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Não foi possível salvar a empresa: $error')),
+      );
+    }
   }
 }

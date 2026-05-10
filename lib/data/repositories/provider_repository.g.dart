@@ -55,4 +55,4 @@ final class ProviderRepositoryProvider
 }
 
 String _$providerRepositoryHash() =>
-    r'8471fa65f78e0bbd2542aabfaebf7bbdf521e517';
+    r'7c438b1e9fd13b183602a9e06b7be6faeb5f9160';

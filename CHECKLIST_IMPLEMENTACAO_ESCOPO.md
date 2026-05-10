@@ -255,11 +255,11 @@ Arquivos-base:
 ### 8. Completar catálogo de produtos/serviços
 Impacto: Médio
 
-- [ ] Filtros por tipo e empresa
+- [x] Filtros por tipo e empresa
 - [x] FAB novo item
 - [x] Busca refinada
-- [ ] Preview do item em linha de proposta
-- [ ] Toggle ativo/inativo com UX final
+- [x] Preview do item em linha de proposta
+- [x] Toggle ativo/inativo com UX final
 
 Arquivos-base:
 - `lib/features/products/presentation/product_list_screen.dart`
@@ -269,12 +269,12 @@ Arquivos-base:
 ### 9. Completar configurações
 Impacto: Médio
 
-- [ ] Dados do usuário logado
-- [ ] Troca de senha
-- [ ] Empresa padrão ativa
-- [ ] Tema claro/escuro/sistema editável
+- [x] Dados do usuário logado
+- [x] Troca de senha
+- [x] Empresa padrão ativa
+- [x] Tema claro/escuro/sistema editável
 - [ ] Notificações push
-- [ ] Sobre + versão
+- [x] Sobre + versão
 - [x] Logout final
 
 Arquivos-base:
@@ -289,10 +289,10 @@ Arquivos-base:
 ### 10. Multi-empresa real
 Impacto: Médio
 
-- [ ] Troca de empresa ativa sem relogin
-- [ ] Aplicar branding por tenant
-- [ ] Logo/cor/assinatura por empresa
-- [ ] Garantir propagação correta por provider ativo
+- [x] Troca de empresa ativa sem relogin
+- [x] Aplicar branding por tenant
+- [x] Logo/cor/assinatura por empresa
+- [x] Garantir propagação correta por provider ativo
 
 Arquivos-base:
 - `lib/core/services/auth_service.dart`
@@ -303,9 +303,9 @@ Arquivos-base:
 ### 11. Offline-first completo
 Impacto: Médio
 
-- [ ] Sync ao reconectar
+- [x] Sync ao reconectar
 - [ ] Realtime subscriptions
-- [ ] Conflitos por `updated_at`
+- [x] Conflitos por `updated_at`
 - [ ] Optimistic updates na UI
 
 Arquivos-base:
@@ -316,9 +316,9 @@ Arquivos-base:
 ### 12. PDF e documento final
 Impacto: Médio
 
-- [ ] Inserção visual real de assinaturas no PDF
-- [ ] Melhorar layout dos PDFs
-- [ ] Armazenamento e recuperação final no Supabase Storage
+- [x] Inserção visual real de assinaturas no PDF
+- [x] Melhorar layout dos PDFs
+- [x] Armazenamento e recuperação final no Supabase Storage
 - [x] Garantir hash SHA-256 no fluxo final
 
 Arquivos-base:

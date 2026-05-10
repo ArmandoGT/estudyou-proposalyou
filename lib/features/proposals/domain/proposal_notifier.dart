@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/services/active_provider_context.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../data/dtos/proposal_dto.dart';
 import '../../../data/repositories/proposal_repository.dart';
@@ -22,16 +23,32 @@ class ProposalListNotifier extends _$ProposalListNotifier {
 
   @override
   ProposalListState build() {
+    ref.watch(providerScopeModeProvider);
     ref.onDispose(() => _debounce?.cancel());
     _loadProposals();
     return const ProposalListLoading();
   }
 
-  Future<void> _loadProposals() async {
+  Future<void> _loadProposals({bool refreshRemote = false}) async {
     try {
       final repo = ref.read(proposalRepositoryProvider);
-      final proposals = await repo.getAll();
-      state = ProposalListLoaded(proposals: proposals);
+      final scope = await ref.read(providerScopeModeProvider.future);
+      final activeProviderId = scope == ProviderScopeMode.all
+          ? null
+          : await ref.read(activeProviderIdProvider.future);
+      final proposals = await repo.getAll(
+        providerId: activeProviderId,
+        refreshRemote: refreshRemote,
+      );
+      final currentState = state;
+      final filter = currentState is ProposalListLoaded ? currentState.activeStatusFilter : null;
+      final query = currentState is ProposalListLoaded ? currentState.searchQuery : '';
+      final filteredProposals = filter == null ? proposals : _applyFilter(proposals, filter);
+      state = ProposalListLoaded(
+        proposals: filteredProposals,
+        activeStatusFilter: filter,
+        searchQuery: query,
+      );
     } on AppException catch (e) {
       state = ProposalListError(e.toUserMessage());
     }
@@ -43,14 +60,18 @@ class ProposalListNotifier extends _$ProposalListNotifier {
     _debounce = Timer(const Duration(milliseconds: 300), () async {
       try {
         final repo = ref.read(proposalRepositoryProvider);
+        final scope = await ref.read(providerScopeModeProvider.future);
+        final activeProviderId = scope == ProviderScopeMode.all
+            ? null
+            : await ref.read(activeProviderIdProvider.future);
         final currentState = state;
         final filter = currentState is ProposalListLoaded ? currentState.activeStatusFilter : null;
 
         List<ProposalDto> results;
         if (query.isEmpty) {
-          results = await repo.getAll();
+          results = await repo.getAll(providerId: activeProviderId);
         } else {
-          results = await repo.search(query);
+          results = await repo.search(query, providerId: activeProviderId);
         }
 
         // Aplica filtro local
@@ -88,7 +109,143 @@ class ProposalListNotifier extends _$ProposalListNotifier {
     return list.where((p) => p.status == status).toList();
   }
 
-  Future<void> refresh() => _loadProposals();
+  Future<void> archive(String id) async {
+    try {
+      final repo = ref.read(proposalRepositoryProvider);
+      await repo.archive(id);
+      _loadProposals();
+    } on AppException catch (e) {
+      state = ProposalListError(e.toUserMessage());
+    }
+  }
+
+  Future<void> deletePermanently(String id) async {
+    try {
+      final repo = ref.read(proposalRepositoryProvider);
+      await repo.deletePermanently(id);
+      _loadProposals();
+    } on AppException catch (e) {
+      state = ProposalListError(e.toUserMessage());
+    }
+  }
+
+  Future<void> refresh() => _loadProposals(refreshRemote: true);
+}
+
+@riverpod
+class ArchivedProposalListNotifier extends _$ArchivedProposalListNotifier {
+  Timer? _debounce;
+
+  @override
+  ProposalListState build() {
+    ref.watch(providerScopeModeProvider);
+    ref.onDispose(() => _debounce?.cancel());
+    _loadArchivedProposals();
+    return const ProposalListLoading();
+  }
+
+  Future<void> _loadArchivedProposals({bool refreshRemote = false}) async {
+    try {
+      final repo = ref.read(proposalRepositoryProvider);
+      final scope = await ref.read(providerScopeModeProvider.future);
+      final activeProviderId = scope == ProviderScopeMode.all
+          ? null
+          : await ref.read(activeProviderIdProvider.future);
+      final proposals = await repo.getAll(
+        providerId: activeProviderId,
+        refreshRemote: refreshRemote,
+        archivedOnly: true,
+      );
+      final currentState = state;
+      final filter = currentState is ProposalListLoaded ? currentState.activeStatusFilter : null;
+      final query = currentState is ProposalListLoaded ? currentState.searchQuery : '';
+      final filtered = filter == null ? proposals : _applyFilter(proposals, filter);
+      state = ProposalListLoaded(
+        proposals: filtered,
+        activeStatusFilter: filter,
+        searchQuery: query,
+      );
+    } on AppException catch (e) {
+      state = ProposalListError(e.toUserMessage());
+    }
+  }
+
+  void search(String query) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      try {
+        final repo = ref.read(proposalRepositoryProvider);
+        final scope = await ref.read(providerScopeModeProvider.future);
+        final activeProviderId = scope == ProviderScopeMode.all
+            ? null
+            : await ref.read(activeProviderIdProvider.future);
+        final currentState = state;
+        final filter = currentState is ProposalListLoaded ? currentState.activeStatusFilter : null;
+
+        List<ProposalDto> results;
+        if (query.isEmpty) {
+          results = await repo.getAll(providerId: activeProviderId, archivedOnly: true);
+        } else {
+          results = await repo.search(query, providerId: activeProviderId, archivedOnly: true);
+        }
+
+        if (filter != null) {
+          results = _applyFilter(results, filter);
+        }
+
+        state = ProposalListLoaded(proposals: results, activeStatusFilter: filter, searchQuery: query);
+      } on AppException catch (e) {
+        state = ProposalListError(e.toUserMessage());
+      }
+    });
+  }
+
+  void filterByStatus(String? status) {
+    final currentState = state;
+    if (currentState is! ProposalListLoaded) return;
+
+    var proposals = currentState.proposals;
+    if (status != null) {
+      proposals = _applyFilter(proposals, status);
+    }
+    state = ProposalListLoaded(
+      proposals: proposals,
+      activeStatusFilter: status,
+      searchQuery: currentState.searchQuery,
+    );
+
+    if (currentState.searchQuery.isNotEmpty) {
+      search(currentState.searchQuery);
+    } else {
+      _loadArchivedProposals();
+    }
+  }
+
+  List<ProposalDto> _applyFilter(List<ProposalDto> list, String status) {
+    return list.where((p) => p.status == status).toList();
+  }
+
+  Future<void> restore(String id) async {
+    try {
+      final repo = ref.read(proposalRepositoryProvider);
+      await repo.restore(id);
+      _loadArchivedProposals();
+    } on AppException catch (e) {
+      state = ProposalListError(e.toUserMessage());
+    }
+  }
+
+  Future<void> deletePermanently(String id) async {
+    try {
+      final repo = ref.read(proposalRepositoryProvider);
+      await repo.deletePermanently(id);
+      _loadArchivedProposals();
+    } on AppException catch (e) {
+      state = ProposalListError(e.toUserMessage());
+    }
+  }
+
+  Future<void> refresh() => _loadArchivedProposals(refreshRemote: true);
 }
 
 // ─────────────────────────────────────────────────────────────

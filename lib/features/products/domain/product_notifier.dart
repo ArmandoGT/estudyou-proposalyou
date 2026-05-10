@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/services/active_provider_context.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../data/dtos/product_dto.dart';
 import '../../../data/repositories/product_repository.dart';
@@ -22,16 +23,32 @@ class ProductListNotifier extends _$ProductListNotifier {
 
   @override
   ProductListState build() {
+    ref.watch(providerScopeModeProvider);
     ref.onDispose(() => _debounce?.cancel());
     _loadProducts();
     return const ProductListLoading();
   }
 
-  Future<void> _loadProducts() async {
+  Future<void> _loadProducts({bool refreshRemote = false}) async {
     try {
       final repo = ref.read(productRepositoryProvider);
-      final products = await repo.getAll();
-      state = ProductListLoaded(products: products);
+      final scope = await ref.read(providerScopeModeProvider.future);
+      final activeProviderId = scope == ProviderScopeMode.all
+          ? null
+          : await ref.read(activeProviderIdProvider.future);
+      final products = await repo.getAll(
+        providerId: activeProviderId,
+        refreshRemote: refreshRemote,
+      );
+      final currentState = state;
+      final filter = currentState is ProductListLoaded ? currentState.activeTypeFilter : null;
+      final query = currentState is ProductListLoaded ? currentState.searchQuery : '';
+      final filteredProducts = filter == null ? products : _applyFilter(products, filter);
+      state = ProductListLoaded(
+        products: filteredProducts,
+        activeTypeFilter: filter,
+        searchQuery: query,
+      );
     } on AppException catch (e) {
       state = ProductListError(e.toUserMessage());
     }
@@ -43,14 +60,18 @@ class ProductListNotifier extends _$ProductListNotifier {
     _debounce = Timer(const Duration(milliseconds: 300), () async {
       try {
         final repo = ref.read(productRepositoryProvider);
+        final scope = await ref.read(providerScopeModeProvider.future);
+        final activeProviderId = scope == ProviderScopeMode.all
+            ? null
+            : await ref.read(activeProviderIdProvider.future);
         final currentState = state;
         final filter = currentState is ProductListLoaded ? currentState.activeTypeFilter : null;
 
         List<ProductDto> results;
         if (query.isEmpty) {
-          results = await repo.getAll();
+          results = await repo.getAll(providerId: activeProviderId);
         } else {
-          results = await repo.searchByName(query);
+          results = await repo.searchByName(query, providerId: activeProviderId);
         }
 
         // Aplica filtro local
@@ -89,7 +110,7 @@ class ProductListNotifier extends _$ProductListNotifier {
     return products.where((p) => p.tipo == type).toList();
   }
 
-  Future<void> refresh() => _loadProducts();
+  Future<void> refresh() => _loadProducts(refreshRemote: true);
 }
 
 // ─────────────────────────────────────────────────────────────

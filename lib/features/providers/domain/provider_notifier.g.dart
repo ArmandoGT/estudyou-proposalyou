@@ -34,7 +34,7 @@ final class ProviderListNotifierProvider
 }
 
 String _$providerListNotifierHash() =>
-    r'4831f790eb70ef4058f4fd71c38a616456279781';
+    r'98fbab3be3cb5befc0b1007e4c9152df8d4a9b44';
 
 abstract class _$ProviderListNotifier
     extends $AsyncNotifier<List<ProviderDto>> {
@@ -98,7 +98,7 @@ final class ProviderEditNotifierProvider
 }
 
 String _$providerEditNotifierHash() =>
-    r'91a62dce50868f2353099af0b98f5c56863cf36e';
+    r'e7d87e9dfda05d3df59f7cebd68f4be8384537cf';
 
 final class ProviderEditNotifierFamily extends $Family
     with

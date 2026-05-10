@@ -78,6 +78,60 @@ class CachedProposals extends Table {
   RealColumn get desconto => real().withDefault(const Constant(0))();
   TextColumn get observacoes => text().nullable()();
   DateTimeColumn get validade => dateTime().nullable()();
+  DateTimeColumn get archivedAt => dateTime().nullable().named('archived_at')();
+  DateTimeColumn get updatedAt => dateTime().named('updated_at')();
+  DateTimeColumn get syncedAt => dateTime().nullable().named('synced_at')();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Cache local de templates de proposta.
+class CachedProposalTemplates extends Table {
+  TextColumn get id => text()();
+  TextColumn get providerId => text().named('provider_id')();
+  TextColumn get nome => text()();
+  TextColumn get corpoJson => text().named('corpo_json')();
+  BoolColumn get ativo => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get updatedAt => dateTime().named('updated_at')();
+  DateTimeColumn get syncedAt => dateTime().nullable().named('synced_at')();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Cache local de contratos.
+class CachedContracts extends Table {
+  TextColumn get id => text()();
+  TextColumn get providerId => text().named('provider_id')();
+  TextColumn get clientId => text().named('client_id')();
+  TextColumn get status => text().withDefault(const Constant('minuta'))();
+  TextColumn get textoFinal => text().nullable().named('texto_final')();
+  TextColumn get proposalId => text().nullable().named('proposal_id')();
+  TextColumn get templateId => text().nullable().named('template_id')();
+  DateTimeColumn get vigenciaInicio => dateTime().nullable().named('vigencia_inicio')();
+  DateTimeColumn get vigenciaFim => dateTime().nullable().named('vigencia_fim')();
+  TextColumn get shareToken => text().nullable().named('share_token')();
+  TextColumn get pdfUrl => text().nullable().named('pdf_url')();
+  TextColumn get hashDocumento => text().nullable().named('hash_documento')();
+  IntColumn get totalSignatarios => integer().withDefault(const Constant(2)).named('total_signatarios')();
+  TextColumn get linkAssinatura => text().nullable().named('link_assinatura')();
+  TextColumn get clienteNome => text().nullable().named('cliente_nome')();
+  IntColumn get assinaturasRealizadas => integer().nullable().named('assinaturas_realizadas')();
+  DateTimeColumn get updatedAt => dateTime().named('updated_at')();
+  DateTimeColumn get syncedAt => dateTime().nullable().named('synced_at')();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Cache local de templates de contrato.
+class CachedContractTemplates extends Table {
+  TextColumn get id => text()();
+  TextColumn get providerId => text().named('provider_id')();
+  TextColumn get nome => text()();
+  TextColumn get corpoJson => text().named('corpo_json')();
+  IntColumn get versao => integer().withDefault(const Constant(1))();
   DateTimeColumn get updatedAt => dateTime().named('updated_at')();
   DateTimeColumn get syncedAt => dateTime().nullable().named('synced_at')();
 
@@ -89,7 +143,15 @@ class CachedProposals extends Table {
 // Database principal
 // ─────────────────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [CachedProviders, CachedClients, CachedProducts, CachedProposals])
+@DriftDatabase(tables: [
+  CachedProviders,
+  CachedClients,
+  CachedProducts,
+  CachedProposals,
+  CachedProposalTemplates,
+  CachedContracts,
+  CachedContractTemplates,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -97,7 +159,17 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 4;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) async => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          if (from < 4) {
+            await m.addColumn(cachedProposals, cachedProposals.archivedAt);
+          }
+        },
+      );
 
   // ─────────────────────────────────────────────────────────────────
   // Métodos utilitários de sync
@@ -109,6 +181,9 @@ class AppDatabase extends _$AppDatabase {
     await delete(cachedClients).go();
     await delete(cachedProducts).go();
     await delete(cachedProposals).go();
+    await delete(cachedProposalTemplates).go();
+    await delete(cachedContracts).go();
+    await delete(cachedContractTemplates).go();
   }
 
   /// Verifica se um registro precisa de sync comparando updated_at.

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/active_provider_context.dart';
 import '../../../core/services/share_service.dart';
+import '../../../shared/widgets/tenant_brand_card.dart';
 import '../domain/contract_notifier.dart';
 import '../domain/contract_state.dart';
 
@@ -23,6 +25,7 @@ class _ContractStep3ScreenState extends ConsumerState<ContractStep3Screen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = ref.watch(contractWizardProvider);
+    final activeProviderAsync = ref.watch(activeProviderProvider);
 
     if (state is! ContractWizardStep3 && state is! ContractWizardSaving && state is! ContractWizardError) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -51,6 +54,18 @@ class _ContractStep3ScreenState extends ConsumerState<ContractStep3Screen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            activeProviderAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+              data: (provider) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: TenantBrandCard(
+                  provider: provider,
+                  title: 'Identidade da empresa',
+                  subtitle: draft.providerId,
+                ),
+              ),
+            ),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -145,19 +160,27 @@ class _ContractStep3ScreenState extends ConsumerState<ContractStep3Screen> {
                           label: const Text('Compartilhar'),
                         ),
                         OutlinedButton.icon(
-                          onPressed: null,
+                          onPressed: () async {
+                            final message = hasLink
+                                ? 'O PDF final ficará disponível após todas as assinaturas serem concluídas.'
+                                : 'Salve o contrato primeiro para habilitar o link público e depois finalize as assinaturas para gerar o PDF final.';
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(message)),
+                            );
+                          },
                           icon: const Icon(Icons.picture_as_pdf_outlined),
-                          label: const Text('Salvar PDF'),
+                          label: const Text('PDF final após assinaturas'),
                         ),
                       ],
                     ),
-                    if (!hasLink) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        'O link público ficará disponível após o contrato ser salvo com share token válido.',
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                      ),
-                    ],
+                    const SizedBox(height: 12),
+                    Text(
+                      hasLink
+                          ? 'Após a última assinatura, o sistema gera, envia e vincula automaticamente o PDF final do contrato.'
+                          : 'O link público ficará disponível após o contrato ser salvo com share token válido.',
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
                   ],
                 ),
               ),

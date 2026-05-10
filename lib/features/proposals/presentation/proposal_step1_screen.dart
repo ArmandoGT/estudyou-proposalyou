@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/active_provider_context.dart';
 import '../../../data/dtos/client_dto.dart';
 import '../../../data/dtos/proposal_dto.dart';
+import '../../../data/dtos/proposal_template_dto.dart';
 import '../../../data/repositories/proposal_template_repository.dart';
 import '../../clients/domain/client_notifier.dart';
 import '../../clients/domain/client_state.dart';
@@ -56,13 +58,27 @@ class _ProposalStep1ScreenState extends ConsumerState<ProposalStep1Screen> {
     final state = ref.watch(proposalWizardProvider);
     final clientsState = ref.watch(clientListProvider);
     final providersAsync = ref.watch(providerListProvider);
-    final templatesAsync = ref.watch(proposalTemplateRepositoryProvider).getAll();
+    final activeProviderAsync = ref.watch(activeProviderIdProvider);
+    final templatesAsync = activeProviderAsync.when(
+      data: (providerId) => ref.watch(proposalTemplateRepositoryProvider).getAll(providerId: providerId),
+      loading: () async => const [],
+      error: (_, _) async => const [],
+    );
 
     if (state is! ProposalWizardStep1) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     _init(state.draft);
+    activeProviderAsync.whenData((providerId) {
+      if ((_selectedProviderId == null || _selectedProviderId!.isEmpty) && providerId != null && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && (_selectedProviderId == null || _selectedProviderId!.isEmpty)) {
+            setState(() => _selectedProviderId = providerId);
+          }
+        });
+      }
+    });
     if (_selectedClient == null && widget.initialClient != null) {
       _selectedClient = widget.initialClient;
     } else if (_selectedClient == null && state.draft.clientId?.isNotEmpty == true && clientsState is ClientListLoaded) {
@@ -102,13 +118,13 @@ class _ProposalStep1ScreenState extends ConsumerState<ProposalStep1Screen> {
               FutureBuilder(
                 future: templatesAsync,
                 builder: (context, snapshot) {
-                  final templates = snapshot.data ?? const [];
+                  final templates = snapshot.data ?? const <ProposalTemplateDto>[];
                   return DropdownButtonFormField<String>(
                     initialValue: _selectedTemplateId,
                     decoration: const InputDecoration(labelText: 'Modelo de proposta'),
                     items: templates
                         .where((template) => template.ativo)
-                        .map((template) => DropdownMenuItem(
+                        .map((template) => DropdownMenuItem<String>(
                               value: template.id,
                               child: Text(template.nome),
                             ))

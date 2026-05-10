@@ -55,4 +55,4 @@ final class ContractRepositoryProvider
 }
 
 String _$contractRepositoryHash() =>
-    r'9177c53e30d802f77a773a42eb44fe20edef3c48';
+    r'93d2f939ac7344f061a4c004cb512e9f4bd6ae15';

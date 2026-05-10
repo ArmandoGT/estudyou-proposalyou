@@ -42,7 +42,7 @@ final class ContractListNotifierProvider
 }
 
 String _$contractListNotifierHash() =>
-    r'4ba6c970c85c20c0581c4e7d29081c53638732df';
+    r'4098821bee23d786c78702c35a1ae808f214eabe';
 
 abstract class _$ContractListNotifier extends $Notifier<ContractListState> {
   ContractListState build();
@@ -113,7 +113,7 @@ final class ContractDetailNotifierProvider
 }
 
 String _$contractDetailNotifierHash() =>
-    r'a935737a45774293719372a1985ed9ec993f5ad5';
+    r'0b945adca8a393a459b8c28e0cda8ea146630cac';
 
 final class ContractDetailNotifierFamily extends $Family
     with
@@ -194,7 +194,7 @@ final class ContractWizardNotifierProvider
 }
 
 String _$contractWizardNotifierHash() =>
-    r'c478a978c52a047d18bb036f081fec5ad47a7357';
+    r'caa5750c64b487a755ecbe8e550a0165d458f0f5';
 
 abstract class _$ContractWizardNotifier extends $Notifier<ContractWizardState> {
   ContractWizardState build();

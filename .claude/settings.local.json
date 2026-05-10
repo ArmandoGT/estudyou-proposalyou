@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(flutter pub *)"
+      "PowerShell(flutter pub *)",
+      "PowerShell(claude mcp *)"
     ]
   }
 }

@@ -1893,6 +1893,17 @@ class $CachedProposalsTable extends CachedProposals
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _archivedAtMeta = const VerificationMeta(
+    'archivedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> archivedAt = GeneratedColumn<DateTime>(
+    'archived_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -1926,6 +1937,7 @@ class $CachedProposalsTable extends CachedProposals
     desconto,
     observacoes,
     validade,
+    archivedAt,
     updatedAt,
     syncedAt,
   ];
@@ -2001,6 +2013,12 @@ class $CachedProposalsTable extends CachedProposals
         validade.isAcceptableOrUnknown(data['validade']!, _validadeMeta),
       );
     }
+    if (data.containsKey('archived_at')) {
+      context.handle(
+        _archivedAtMeta,
+        archivedAt.isAcceptableOrUnknown(data['archived_at']!, _archivedAtMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -2060,6 +2078,10 @@ class $CachedProposalsTable extends CachedProposals
         DriftSqlType.dateTime,
         data['${effectivePrefix}validade'],
       ),
+      archivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}archived_at'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -2087,6 +2109,7 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
   final double desconto;
   final String? observacoes;
   final DateTime? validade;
+  final DateTime? archivedAt;
   final DateTime updatedAt;
   final DateTime? syncedAt;
   const CachedProposal({
@@ -2099,6 +2122,7 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
     required this.desconto,
     this.observacoes,
     this.validade,
+    this.archivedAt,
     required this.updatedAt,
     this.syncedAt,
   });
@@ -2117,6 +2141,9 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
     }
     if (!nullToAbsent || validade != null) {
       map['validade'] = Variable<DateTime>(validade);
+    }
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<DateTime>(archivedAt);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || syncedAt != null) {
@@ -2140,6 +2167,9 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
       validade: validade == null && nullToAbsent
           ? const Value.absent()
           : Value(validade),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
       updatedAt: Value(updatedAt),
       syncedAt: syncedAt == null && nullToAbsent
           ? const Value.absent()
@@ -2162,6 +2192,7 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
       desconto: serializer.fromJson<double>(json['desconto']),
       observacoes: serializer.fromJson<String?>(json['observacoes']),
       validade: serializer.fromJson<DateTime?>(json['validade']),
+      archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
     );
@@ -2179,6 +2210,7 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
       'desconto': serializer.toJson<double>(desconto),
       'observacoes': serializer.toJson<String?>(observacoes),
       'validade': serializer.toJson<DateTime?>(validade),
+      'archivedAt': serializer.toJson<DateTime?>(archivedAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'syncedAt': serializer.toJson<DateTime?>(syncedAt),
     };
@@ -2194,6 +2226,7 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
     double? desconto,
     Value<String?> observacoes = const Value.absent(),
     Value<DateTime?> validade = const Value.absent(),
+    Value<DateTime?> archivedAt = const Value.absent(),
     DateTime? updatedAt,
     Value<DateTime?> syncedAt = const Value.absent(),
   }) => CachedProposal(
@@ -2206,6 +2239,7 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
     desconto: desconto ?? this.desconto,
     observacoes: observacoes.present ? observacoes.value : this.observacoes,
     validade: validade.present ? validade.value : this.validade,
+    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
     updatedAt: updatedAt ?? this.updatedAt,
     syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
   );
@@ -2224,6 +2258,9 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
           ? data.observacoes.value
           : this.observacoes,
       validade: data.validade.present ? data.validade.value : this.validade,
+      archivedAt: data.archivedAt.present
+          ? data.archivedAt.value
+          : this.archivedAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
     );
@@ -2241,6 +2278,7 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
           ..write('desconto: $desconto, ')
           ..write('observacoes: $observacoes, ')
           ..write('validade: $validade, ')
+          ..write('archivedAt: $archivedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncedAt: $syncedAt')
           ..write(')'))
@@ -2258,6 +2296,7 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
     desconto,
     observacoes,
     validade,
+    archivedAt,
     updatedAt,
     syncedAt,
   );
@@ -2274,6 +2313,7 @@ class CachedProposal extends DataClass implements Insertable<CachedProposal> {
           other.desconto == this.desconto &&
           other.observacoes == this.observacoes &&
           other.validade == this.validade &&
+          other.archivedAt == this.archivedAt &&
           other.updatedAt == this.updatedAt &&
           other.syncedAt == this.syncedAt);
 }
@@ -2288,6 +2328,7 @@ class CachedProposalsCompanion extends UpdateCompanion<CachedProposal> {
   final Value<double> desconto;
   final Value<String?> observacoes;
   final Value<DateTime?> validade;
+  final Value<DateTime?> archivedAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> syncedAt;
   final Value<int> rowid;
@@ -2301,6 +2342,7 @@ class CachedProposalsCompanion extends UpdateCompanion<CachedProposal> {
     this.desconto = const Value.absent(),
     this.observacoes = const Value.absent(),
     this.validade = const Value.absent(),
+    this.archivedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.syncedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2315,6 +2357,7 @@ class CachedProposalsCompanion extends UpdateCompanion<CachedProposal> {
     this.desconto = const Value.absent(),
     this.observacoes = const Value.absent(),
     this.validade = const Value.absent(),
+    this.archivedAt = const Value.absent(),
     required DateTime updatedAt,
     this.syncedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2332,6 +2375,7 @@ class CachedProposalsCompanion extends UpdateCompanion<CachedProposal> {
     Expression<double>? desconto,
     Expression<String>? observacoes,
     Expression<DateTime>? validade,
+    Expression<DateTime>? archivedAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? syncedAt,
     Expression<int>? rowid,
@@ -2346,6 +2390,7 @@ class CachedProposalsCompanion extends UpdateCompanion<CachedProposal> {
       if (desconto != null) 'desconto': desconto,
       if (observacoes != null) 'observacoes': observacoes,
       if (validade != null) 'validade': validade,
+      if (archivedAt != null) 'archived_at': archivedAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (syncedAt != null) 'synced_at': syncedAt,
       if (rowid != null) 'rowid': rowid,
@@ -2362,6 +2407,7 @@ class CachedProposalsCompanion extends UpdateCompanion<CachedProposal> {
     Value<double>? desconto,
     Value<String?>? observacoes,
     Value<DateTime?>? validade,
+    Value<DateTime?>? archivedAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? syncedAt,
     Value<int>? rowid,
@@ -2376,6 +2422,7 @@ class CachedProposalsCompanion extends UpdateCompanion<CachedProposal> {
       desconto: desconto ?? this.desconto,
       observacoes: observacoes ?? this.observacoes,
       validade: validade ?? this.validade,
+      archivedAt: archivedAt ?? this.archivedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       syncedAt: syncedAt ?? this.syncedAt,
       rowid: rowid ?? this.rowid,
@@ -2412,6 +2459,9 @@ class CachedProposalsCompanion extends UpdateCompanion<CachedProposal> {
     if (validade.present) {
       map['validade'] = Variable<DateTime>(validade.value);
     }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<DateTime>(archivedAt.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -2436,6 +2486,1981 @@ class CachedProposalsCompanion extends UpdateCompanion<CachedProposal> {
           ..write('desconto: $desconto, ')
           ..write('observacoes: $observacoes, ')
           ..write('validade: $validade, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CachedProposalTemplatesTable extends CachedProposalTemplates
+    with TableInfo<$CachedProposalTemplatesTable, CachedProposalTemplate> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CachedProposalTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerIdMeta = const VerificationMeta(
+    'providerId',
+  );
+  @override
+  late final GeneratedColumn<String> providerId = GeneratedColumn<String>(
+    'provider_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nomeMeta = const VerificationMeta('nome');
+  @override
+  late final GeneratedColumn<String> nome = GeneratedColumn<String>(
+    'nome',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _corpoJsonMeta = const VerificationMeta(
+    'corpoJson',
+  );
+  @override
+  late final GeneratedColumn<String> corpoJson = GeneratedColumn<String>(
+    'corpo_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ativoMeta = const VerificationMeta('ativo');
+  @override
+  late final GeneratedColumn<bool> ativo = GeneratedColumn<bool>(
+    'ativo',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("ativo" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    providerId,
+    nome,
+    corpoJson,
+    ativo,
+    updatedAt,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cached_proposal_templates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CachedProposalTemplate> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('provider_id')) {
+      context.handle(
+        _providerIdMeta,
+        providerId.isAcceptableOrUnknown(data['provider_id']!, _providerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_providerIdMeta);
+    }
+    if (data.containsKey('nome')) {
+      context.handle(
+        _nomeMeta,
+        nome.isAcceptableOrUnknown(data['nome']!, _nomeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nomeMeta);
+    }
+    if (data.containsKey('corpo_json')) {
+      context.handle(
+        _corpoJsonMeta,
+        corpoJson.isAcceptableOrUnknown(data['corpo_json']!, _corpoJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_corpoJsonMeta);
+    }
+    if (data.containsKey('ativo')) {
+      context.handle(
+        _ativoMeta,
+        ativo.isAcceptableOrUnknown(data['ativo']!, _ativoMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CachedProposalTemplate map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CachedProposalTemplate(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      providerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_id'],
+      )!,
+      nome: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nome'],
+      )!,
+      corpoJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}corpo_json'],
+      )!,
+      ativo: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}ativo'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $CachedProposalTemplatesTable createAlias(String alias) {
+    return $CachedProposalTemplatesTable(attachedDatabase, alias);
+  }
+}
+
+class CachedProposalTemplate extends DataClass
+    implements Insertable<CachedProposalTemplate> {
+  final String id;
+  final String providerId;
+  final String nome;
+  final String corpoJson;
+  final bool ativo;
+  final DateTime updatedAt;
+  final DateTime? syncedAt;
+  const CachedProposalTemplate({
+    required this.id,
+    required this.providerId,
+    required this.nome,
+    required this.corpoJson,
+    required this.ativo,
+    required this.updatedAt,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['provider_id'] = Variable<String>(providerId);
+    map['nome'] = Variable<String>(nome);
+    map['corpo_json'] = Variable<String>(corpoJson);
+    map['ativo'] = Variable<bool>(ativo);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  CachedProposalTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return CachedProposalTemplatesCompanion(
+      id: Value(id),
+      providerId: Value(providerId),
+      nome: Value(nome),
+      corpoJson: Value(corpoJson),
+      ativo: Value(ativo),
+      updatedAt: Value(updatedAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory CachedProposalTemplate.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CachedProposalTemplate(
+      id: serializer.fromJson<String>(json['id']),
+      providerId: serializer.fromJson<String>(json['providerId']),
+      nome: serializer.fromJson<String>(json['nome']),
+      corpoJson: serializer.fromJson<String>(json['corpoJson']),
+      ativo: serializer.fromJson<bool>(json['ativo']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'providerId': serializer.toJson<String>(providerId),
+      'nome': serializer.toJson<String>(nome),
+      'corpoJson': serializer.toJson<String>(corpoJson),
+      'ativo': serializer.toJson<bool>(ativo),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  CachedProposalTemplate copyWith({
+    String? id,
+    String? providerId,
+    String? nome,
+    String? corpoJson,
+    bool? ativo,
+    DateTime? updatedAt,
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => CachedProposalTemplate(
+    id: id ?? this.id,
+    providerId: providerId ?? this.providerId,
+    nome: nome ?? this.nome,
+    corpoJson: corpoJson ?? this.corpoJson,
+    ativo: ativo ?? this.ativo,
+    updatedAt: updatedAt ?? this.updatedAt,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  CachedProposalTemplate copyWithCompanion(
+    CachedProposalTemplatesCompanion data,
+  ) {
+    return CachedProposalTemplate(
+      id: data.id.present ? data.id.value : this.id,
+      providerId: data.providerId.present
+          ? data.providerId.value
+          : this.providerId,
+      nome: data.nome.present ? data.nome.value : this.nome,
+      corpoJson: data.corpoJson.present ? data.corpoJson.value : this.corpoJson,
+      ativo: data.ativo.present ? data.ativo.value : this.ativo,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedProposalTemplate(')
+          ..write('id: $id, ')
+          ..write('providerId: $providerId, ')
+          ..write('nome: $nome, ')
+          ..write('corpoJson: $corpoJson, ')
+          ..write('ativo: $ativo, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, providerId, nome, corpoJson, ativo, updatedAt, syncedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CachedProposalTemplate &&
+          other.id == this.id &&
+          other.providerId == this.providerId &&
+          other.nome == this.nome &&
+          other.corpoJson == this.corpoJson &&
+          other.ativo == this.ativo &&
+          other.updatedAt == this.updatedAt &&
+          other.syncedAt == this.syncedAt);
+}
+
+class CachedProposalTemplatesCompanion
+    extends UpdateCompanion<CachedProposalTemplate> {
+  final Value<String> id;
+  final Value<String> providerId;
+  final Value<String> nome;
+  final Value<String> corpoJson;
+  final Value<bool> ativo;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const CachedProposalTemplatesCompanion({
+    this.id = const Value.absent(),
+    this.providerId = const Value.absent(),
+    this.nome = const Value.absent(),
+    this.corpoJson = const Value.absent(),
+    this.ativo = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CachedProposalTemplatesCompanion.insert({
+    required String id,
+    required String providerId,
+    required String nome,
+    required String corpoJson,
+    this.ativo = const Value.absent(),
+    required DateTime updatedAt,
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       providerId = Value(providerId),
+       nome = Value(nome),
+       corpoJson = Value(corpoJson),
+       updatedAt = Value(updatedAt);
+  static Insertable<CachedProposalTemplate> custom({
+    Expression<String>? id,
+    Expression<String>? providerId,
+    Expression<String>? nome,
+    Expression<String>? corpoJson,
+    Expression<bool>? ativo,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (providerId != null) 'provider_id': providerId,
+      if (nome != null) 'nome': nome,
+      if (corpoJson != null) 'corpo_json': corpoJson,
+      if (ativo != null) 'ativo': ativo,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CachedProposalTemplatesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? providerId,
+    Value<String>? nome,
+    Value<String>? corpoJson,
+    Value<bool>? ativo,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return CachedProposalTemplatesCompanion(
+      id: id ?? this.id,
+      providerId: providerId ?? this.providerId,
+      nome: nome ?? this.nome,
+      corpoJson: corpoJson ?? this.corpoJson,
+      ativo: ativo ?? this.ativo,
+      updatedAt: updatedAt ?? this.updatedAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (providerId.present) {
+      map['provider_id'] = Variable<String>(providerId.value);
+    }
+    if (nome.present) {
+      map['nome'] = Variable<String>(nome.value);
+    }
+    if (corpoJson.present) {
+      map['corpo_json'] = Variable<String>(corpoJson.value);
+    }
+    if (ativo.present) {
+      map['ativo'] = Variable<bool>(ativo.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedProposalTemplatesCompanion(')
+          ..write('id: $id, ')
+          ..write('providerId: $providerId, ')
+          ..write('nome: $nome, ')
+          ..write('corpoJson: $corpoJson, ')
+          ..write('ativo: $ativo, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CachedContractsTable extends CachedContracts
+    with TableInfo<$CachedContractsTable, CachedContract> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CachedContractsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerIdMeta = const VerificationMeta(
+    'providerId',
+  );
+  @override
+  late final GeneratedColumn<String> providerId = GeneratedColumn<String>(
+    'provider_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientIdMeta = const VerificationMeta(
+    'clientId',
+  );
+  @override
+  late final GeneratedColumn<String> clientId = GeneratedColumn<String>(
+    'client_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('minuta'),
+  );
+  static const VerificationMeta _textoFinalMeta = const VerificationMeta(
+    'textoFinal',
+  );
+  @override
+  late final GeneratedColumn<String> textoFinal = GeneratedColumn<String>(
+    'texto_final',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _proposalIdMeta = const VerificationMeta(
+    'proposalId',
+  );
+  @override
+  late final GeneratedColumn<String> proposalId = GeneratedColumn<String>(
+    'proposal_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _templateIdMeta = const VerificationMeta(
+    'templateId',
+  );
+  @override
+  late final GeneratedColumn<String> templateId = GeneratedColumn<String>(
+    'template_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _vigenciaInicioMeta = const VerificationMeta(
+    'vigenciaInicio',
+  );
+  @override
+  late final GeneratedColumn<DateTime> vigenciaInicio =
+      GeneratedColumn<DateTime>(
+        'vigencia_inicio',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _vigenciaFimMeta = const VerificationMeta(
+    'vigenciaFim',
+  );
+  @override
+  late final GeneratedColumn<DateTime> vigenciaFim = GeneratedColumn<DateTime>(
+    'vigencia_fim',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _shareTokenMeta = const VerificationMeta(
+    'shareToken',
+  );
+  @override
+  late final GeneratedColumn<String> shareToken = GeneratedColumn<String>(
+    'share_token',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pdfUrlMeta = const VerificationMeta('pdfUrl');
+  @override
+  late final GeneratedColumn<String> pdfUrl = GeneratedColumn<String>(
+    'pdf_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _hashDocumentoMeta = const VerificationMeta(
+    'hashDocumento',
+  );
+  @override
+  late final GeneratedColumn<String> hashDocumento = GeneratedColumn<String>(
+    'hash_documento',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _totalSignatariosMeta = const VerificationMeta(
+    'totalSignatarios',
+  );
+  @override
+  late final GeneratedColumn<int> totalSignatarios = GeneratedColumn<int>(
+    'total_signatarios',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2),
+  );
+  static const VerificationMeta _linkAssinaturaMeta = const VerificationMeta(
+    'linkAssinatura',
+  );
+  @override
+  late final GeneratedColumn<String> linkAssinatura = GeneratedColumn<String>(
+    'link_assinatura',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _clienteNomeMeta = const VerificationMeta(
+    'clienteNome',
+  );
+  @override
+  late final GeneratedColumn<String> clienteNome = GeneratedColumn<String>(
+    'cliente_nome',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _assinaturasRealizadasMeta =
+      const VerificationMeta('assinaturasRealizadas');
+  @override
+  late final GeneratedColumn<int> assinaturasRealizadas = GeneratedColumn<int>(
+    'assinaturas_realizadas',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    providerId,
+    clientId,
+    status,
+    textoFinal,
+    proposalId,
+    templateId,
+    vigenciaInicio,
+    vigenciaFim,
+    shareToken,
+    pdfUrl,
+    hashDocumento,
+    totalSignatarios,
+    linkAssinatura,
+    clienteNome,
+    assinaturasRealizadas,
+    updatedAt,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cached_contracts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CachedContract> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('provider_id')) {
+      context.handle(
+        _providerIdMeta,
+        providerId.isAcceptableOrUnknown(data['provider_id']!, _providerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_providerIdMeta);
+    }
+    if (data.containsKey('client_id')) {
+      context.handle(
+        _clientIdMeta,
+        clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientIdMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('texto_final')) {
+      context.handle(
+        _textoFinalMeta,
+        textoFinal.isAcceptableOrUnknown(data['texto_final']!, _textoFinalMeta),
+      );
+    }
+    if (data.containsKey('proposal_id')) {
+      context.handle(
+        _proposalIdMeta,
+        proposalId.isAcceptableOrUnknown(data['proposal_id']!, _proposalIdMeta),
+      );
+    }
+    if (data.containsKey('template_id')) {
+      context.handle(
+        _templateIdMeta,
+        templateId.isAcceptableOrUnknown(data['template_id']!, _templateIdMeta),
+      );
+    }
+    if (data.containsKey('vigencia_inicio')) {
+      context.handle(
+        _vigenciaInicioMeta,
+        vigenciaInicio.isAcceptableOrUnknown(
+          data['vigencia_inicio']!,
+          _vigenciaInicioMeta,
+        ),
+      );
+    }
+    if (data.containsKey('vigencia_fim')) {
+      context.handle(
+        _vigenciaFimMeta,
+        vigenciaFim.isAcceptableOrUnknown(
+          data['vigencia_fim']!,
+          _vigenciaFimMeta,
+        ),
+      );
+    }
+    if (data.containsKey('share_token')) {
+      context.handle(
+        _shareTokenMeta,
+        shareToken.isAcceptableOrUnknown(data['share_token']!, _shareTokenMeta),
+      );
+    }
+    if (data.containsKey('pdf_url')) {
+      context.handle(
+        _pdfUrlMeta,
+        pdfUrl.isAcceptableOrUnknown(data['pdf_url']!, _pdfUrlMeta),
+      );
+    }
+    if (data.containsKey('hash_documento')) {
+      context.handle(
+        _hashDocumentoMeta,
+        hashDocumento.isAcceptableOrUnknown(
+          data['hash_documento']!,
+          _hashDocumentoMeta,
+        ),
+      );
+    }
+    if (data.containsKey('total_signatarios')) {
+      context.handle(
+        _totalSignatariosMeta,
+        totalSignatarios.isAcceptableOrUnknown(
+          data['total_signatarios']!,
+          _totalSignatariosMeta,
+        ),
+      );
+    }
+    if (data.containsKey('link_assinatura')) {
+      context.handle(
+        _linkAssinaturaMeta,
+        linkAssinatura.isAcceptableOrUnknown(
+          data['link_assinatura']!,
+          _linkAssinaturaMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cliente_nome')) {
+      context.handle(
+        _clienteNomeMeta,
+        clienteNome.isAcceptableOrUnknown(
+          data['cliente_nome']!,
+          _clienteNomeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('assinaturas_realizadas')) {
+      context.handle(
+        _assinaturasRealizadasMeta,
+        assinaturasRealizadas.isAcceptableOrUnknown(
+          data['assinaturas_realizadas']!,
+          _assinaturasRealizadasMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CachedContract map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CachedContract(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      providerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_id'],
+      )!,
+      clientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      textoFinal: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}texto_final'],
+      ),
+      proposalId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}proposal_id'],
+      ),
+      templateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_id'],
+      ),
+      vigenciaInicio: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}vigencia_inicio'],
+      ),
+      vigenciaFim: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}vigencia_fim'],
+      ),
+      shareToken: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}share_token'],
+      ),
+      pdfUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pdf_url'],
+      ),
+      hashDocumento: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hash_documento'],
+      ),
+      totalSignatarios: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_signatarios'],
+      )!,
+      linkAssinatura: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}link_assinatura'],
+      ),
+      clienteNome: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cliente_nome'],
+      ),
+      assinaturasRealizadas: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}assinaturas_realizadas'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $CachedContractsTable createAlias(String alias) {
+    return $CachedContractsTable(attachedDatabase, alias);
+  }
+}
+
+class CachedContract extends DataClass implements Insertable<CachedContract> {
+  final String id;
+  final String providerId;
+  final String clientId;
+  final String status;
+  final String? textoFinal;
+  final String? proposalId;
+  final String? templateId;
+  final DateTime? vigenciaInicio;
+  final DateTime? vigenciaFim;
+  final String? shareToken;
+  final String? pdfUrl;
+  final String? hashDocumento;
+  final int totalSignatarios;
+  final String? linkAssinatura;
+  final String? clienteNome;
+  final int? assinaturasRealizadas;
+  final DateTime updatedAt;
+  final DateTime? syncedAt;
+  const CachedContract({
+    required this.id,
+    required this.providerId,
+    required this.clientId,
+    required this.status,
+    this.textoFinal,
+    this.proposalId,
+    this.templateId,
+    this.vigenciaInicio,
+    this.vigenciaFim,
+    this.shareToken,
+    this.pdfUrl,
+    this.hashDocumento,
+    required this.totalSignatarios,
+    this.linkAssinatura,
+    this.clienteNome,
+    this.assinaturasRealizadas,
+    required this.updatedAt,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['provider_id'] = Variable<String>(providerId);
+    map['client_id'] = Variable<String>(clientId);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || textoFinal != null) {
+      map['texto_final'] = Variable<String>(textoFinal);
+    }
+    if (!nullToAbsent || proposalId != null) {
+      map['proposal_id'] = Variable<String>(proposalId);
+    }
+    if (!nullToAbsent || templateId != null) {
+      map['template_id'] = Variable<String>(templateId);
+    }
+    if (!nullToAbsent || vigenciaInicio != null) {
+      map['vigencia_inicio'] = Variable<DateTime>(vigenciaInicio);
+    }
+    if (!nullToAbsent || vigenciaFim != null) {
+      map['vigencia_fim'] = Variable<DateTime>(vigenciaFim);
+    }
+    if (!nullToAbsent || shareToken != null) {
+      map['share_token'] = Variable<String>(shareToken);
+    }
+    if (!nullToAbsent || pdfUrl != null) {
+      map['pdf_url'] = Variable<String>(pdfUrl);
+    }
+    if (!nullToAbsent || hashDocumento != null) {
+      map['hash_documento'] = Variable<String>(hashDocumento);
+    }
+    map['total_signatarios'] = Variable<int>(totalSignatarios);
+    if (!nullToAbsent || linkAssinatura != null) {
+      map['link_assinatura'] = Variable<String>(linkAssinatura);
+    }
+    if (!nullToAbsent || clienteNome != null) {
+      map['cliente_nome'] = Variable<String>(clienteNome);
+    }
+    if (!nullToAbsent || assinaturasRealizadas != null) {
+      map['assinaturas_realizadas'] = Variable<int>(assinaturasRealizadas);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  CachedContractsCompanion toCompanion(bool nullToAbsent) {
+    return CachedContractsCompanion(
+      id: Value(id),
+      providerId: Value(providerId),
+      clientId: Value(clientId),
+      status: Value(status),
+      textoFinal: textoFinal == null && nullToAbsent
+          ? const Value.absent()
+          : Value(textoFinal),
+      proposalId: proposalId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(proposalId),
+      templateId: templateId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(templateId),
+      vigenciaInicio: vigenciaInicio == null && nullToAbsent
+          ? const Value.absent()
+          : Value(vigenciaInicio),
+      vigenciaFim: vigenciaFim == null && nullToAbsent
+          ? const Value.absent()
+          : Value(vigenciaFim),
+      shareToken: shareToken == null && nullToAbsent
+          ? const Value.absent()
+          : Value(shareToken),
+      pdfUrl: pdfUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pdfUrl),
+      hashDocumento: hashDocumento == null && nullToAbsent
+          ? const Value.absent()
+          : Value(hashDocumento),
+      totalSignatarios: Value(totalSignatarios),
+      linkAssinatura: linkAssinatura == null && nullToAbsent
+          ? const Value.absent()
+          : Value(linkAssinatura),
+      clienteNome: clienteNome == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clienteNome),
+      assinaturasRealizadas: assinaturasRealizadas == null && nullToAbsent
+          ? const Value.absent()
+          : Value(assinaturasRealizadas),
+      updatedAt: Value(updatedAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory CachedContract.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CachedContract(
+      id: serializer.fromJson<String>(json['id']),
+      providerId: serializer.fromJson<String>(json['providerId']),
+      clientId: serializer.fromJson<String>(json['clientId']),
+      status: serializer.fromJson<String>(json['status']),
+      textoFinal: serializer.fromJson<String?>(json['textoFinal']),
+      proposalId: serializer.fromJson<String?>(json['proposalId']),
+      templateId: serializer.fromJson<String?>(json['templateId']),
+      vigenciaInicio: serializer.fromJson<DateTime?>(json['vigenciaInicio']),
+      vigenciaFim: serializer.fromJson<DateTime?>(json['vigenciaFim']),
+      shareToken: serializer.fromJson<String?>(json['shareToken']),
+      pdfUrl: serializer.fromJson<String?>(json['pdfUrl']),
+      hashDocumento: serializer.fromJson<String?>(json['hashDocumento']),
+      totalSignatarios: serializer.fromJson<int>(json['totalSignatarios']),
+      linkAssinatura: serializer.fromJson<String?>(json['linkAssinatura']),
+      clienteNome: serializer.fromJson<String?>(json['clienteNome']),
+      assinaturasRealizadas: serializer.fromJson<int?>(
+        json['assinaturasRealizadas'],
+      ),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'providerId': serializer.toJson<String>(providerId),
+      'clientId': serializer.toJson<String>(clientId),
+      'status': serializer.toJson<String>(status),
+      'textoFinal': serializer.toJson<String?>(textoFinal),
+      'proposalId': serializer.toJson<String?>(proposalId),
+      'templateId': serializer.toJson<String?>(templateId),
+      'vigenciaInicio': serializer.toJson<DateTime?>(vigenciaInicio),
+      'vigenciaFim': serializer.toJson<DateTime?>(vigenciaFim),
+      'shareToken': serializer.toJson<String?>(shareToken),
+      'pdfUrl': serializer.toJson<String?>(pdfUrl),
+      'hashDocumento': serializer.toJson<String?>(hashDocumento),
+      'totalSignatarios': serializer.toJson<int>(totalSignatarios),
+      'linkAssinatura': serializer.toJson<String?>(linkAssinatura),
+      'clienteNome': serializer.toJson<String?>(clienteNome),
+      'assinaturasRealizadas': serializer.toJson<int?>(assinaturasRealizadas),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  CachedContract copyWith({
+    String? id,
+    String? providerId,
+    String? clientId,
+    String? status,
+    Value<String?> textoFinal = const Value.absent(),
+    Value<String?> proposalId = const Value.absent(),
+    Value<String?> templateId = const Value.absent(),
+    Value<DateTime?> vigenciaInicio = const Value.absent(),
+    Value<DateTime?> vigenciaFim = const Value.absent(),
+    Value<String?> shareToken = const Value.absent(),
+    Value<String?> pdfUrl = const Value.absent(),
+    Value<String?> hashDocumento = const Value.absent(),
+    int? totalSignatarios,
+    Value<String?> linkAssinatura = const Value.absent(),
+    Value<String?> clienteNome = const Value.absent(),
+    Value<int?> assinaturasRealizadas = const Value.absent(),
+    DateTime? updatedAt,
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => CachedContract(
+    id: id ?? this.id,
+    providerId: providerId ?? this.providerId,
+    clientId: clientId ?? this.clientId,
+    status: status ?? this.status,
+    textoFinal: textoFinal.present ? textoFinal.value : this.textoFinal,
+    proposalId: proposalId.present ? proposalId.value : this.proposalId,
+    templateId: templateId.present ? templateId.value : this.templateId,
+    vigenciaInicio: vigenciaInicio.present
+        ? vigenciaInicio.value
+        : this.vigenciaInicio,
+    vigenciaFim: vigenciaFim.present ? vigenciaFim.value : this.vigenciaFim,
+    shareToken: shareToken.present ? shareToken.value : this.shareToken,
+    pdfUrl: pdfUrl.present ? pdfUrl.value : this.pdfUrl,
+    hashDocumento: hashDocumento.present
+        ? hashDocumento.value
+        : this.hashDocumento,
+    totalSignatarios: totalSignatarios ?? this.totalSignatarios,
+    linkAssinatura: linkAssinatura.present
+        ? linkAssinatura.value
+        : this.linkAssinatura,
+    clienteNome: clienteNome.present ? clienteNome.value : this.clienteNome,
+    assinaturasRealizadas: assinaturasRealizadas.present
+        ? assinaturasRealizadas.value
+        : this.assinaturasRealizadas,
+    updatedAt: updatedAt ?? this.updatedAt,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  CachedContract copyWithCompanion(CachedContractsCompanion data) {
+    return CachedContract(
+      id: data.id.present ? data.id.value : this.id,
+      providerId: data.providerId.present
+          ? data.providerId.value
+          : this.providerId,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
+      status: data.status.present ? data.status.value : this.status,
+      textoFinal: data.textoFinal.present
+          ? data.textoFinal.value
+          : this.textoFinal,
+      proposalId: data.proposalId.present
+          ? data.proposalId.value
+          : this.proposalId,
+      templateId: data.templateId.present
+          ? data.templateId.value
+          : this.templateId,
+      vigenciaInicio: data.vigenciaInicio.present
+          ? data.vigenciaInicio.value
+          : this.vigenciaInicio,
+      vigenciaFim: data.vigenciaFim.present
+          ? data.vigenciaFim.value
+          : this.vigenciaFim,
+      shareToken: data.shareToken.present
+          ? data.shareToken.value
+          : this.shareToken,
+      pdfUrl: data.pdfUrl.present ? data.pdfUrl.value : this.pdfUrl,
+      hashDocumento: data.hashDocumento.present
+          ? data.hashDocumento.value
+          : this.hashDocumento,
+      totalSignatarios: data.totalSignatarios.present
+          ? data.totalSignatarios.value
+          : this.totalSignatarios,
+      linkAssinatura: data.linkAssinatura.present
+          ? data.linkAssinatura.value
+          : this.linkAssinatura,
+      clienteNome: data.clienteNome.present
+          ? data.clienteNome.value
+          : this.clienteNome,
+      assinaturasRealizadas: data.assinaturasRealizadas.present
+          ? data.assinaturasRealizadas.value
+          : this.assinaturasRealizadas,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedContract(')
+          ..write('id: $id, ')
+          ..write('providerId: $providerId, ')
+          ..write('clientId: $clientId, ')
+          ..write('status: $status, ')
+          ..write('textoFinal: $textoFinal, ')
+          ..write('proposalId: $proposalId, ')
+          ..write('templateId: $templateId, ')
+          ..write('vigenciaInicio: $vigenciaInicio, ')
+          ..write('vigenciaFim: $vigenciaFim, ')
+          ..write('shareToken: $shareToken, ')
+          ..write('pdfUrl: $pdfUrl, ')
+          ..write('hashDocumento: $hashDocumento, ')
+          ..write('totalSignatarios: $totalSignatarios, ')
+          ..write('linkAssinatura: $linkAssinatura, ')
+          ..write('clienteNome: $clienteNome, ')
+          ..write('assinaturasRealizadas: $assinaturasRealizadas, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    providerId,
+    clientId,
+    status,
+    textoFinal,
+    proposalId,
+    templateId,
+    vigenciaInicio,
+    vigenciaFim,
+    shareToken,
+    pdfUrl,
+    hashDocumento,
+    totalSignatarios,
+    linkAssinatura,
+    clienteNome,
+    assinaturasRealizadas,
+    updatedAt,
+    syncedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CachedContract &&
+          other.id == this.id &&
+          other.providerId == this.providerId &&
+          other.clientId == this.clientId &&
+          other.status == this.status &&
+          other.textoFinal == this.textoFinal &&
+          other.proposalId == this.proposalId &&
+          other.templateId == this.templateId &&
+          other.vigenciaInicio == this.vigenciaInicio &&
+          other.vigenciaFim == this.vigenciaFim &&
+          other.shareToken == this.shareToken &&
+          other.pdfUrl == this.pdfUrl &&
+          other.hashDocumento == this.hashDocumento &&
+          other.totalSignatarios == this.totalSignatarios &&
+          other.linkAssinatura == this.linkAssinatura &&
+          other.clienteNome == this.clienteNome &&
+          other.assinaturasRealizadas == this.assinaturasRealizadas &&
+          other.updatedAt == this.updatedAt &&
+          other.syncedAt == this.syncedAt);
+}
+
+class CachedContractsCompanion extends UpdateCompanion<CachedContract> {
+  final Value<String> id;
+  final Value<String> providerId;
+  final Value<String> clientId;
+  final Value<String> status;
+  final Value<String?> textoFinal;
+  final Value<String?> proposalId;
+  final Value<String?> templateId;
+  final Value<DateTime?> vigenciaInicio;
+  final Value<DateTime?> vigenciaFim;
+  final Value<String?> shareToken;
+  final Value<String?> pdfUrl;
+  final Value<String?> hashDocumento;
+  final Value<int> totalSignatarios;
+  final Value<String?> linkAssinatura;
+  final Value<String?> clienteNome;
+  final Value<int?> assinaturasRealizadas;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const CachedContractsCompanion({
+    this.id = const Value.absent(),
+    this.providerId = const Value.absent(),
+    this.clientId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.textoFinal = const Value.absent(),
+    this.proposalId = const Value.absent(),
+    this.templateId = const Value.absent(),
+    this.vigenciaInicio = const Value.absent(),
+    this.vigenciaFim = const Value.absent(),
+    this.shareToken = const Value.absent(),
+    this.pdfUrl = const Value.absent(),
+    this.hashDocumento = const Value.absent(),
+    this.totalSignatarios = const Value.absent(),
+    this.linkAssinatura = const Value.absent(),
+    this.clienteNome = const Value.absent(),
+    this.assinaturasRealizadas = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CachedContractsCompanion.insert({
+    required String id,
+    required String providerId,
+    required String clientId,
+    this.status = const Value.absent(),
+    this.textoFinal = const Value.absent(),
+    this.proposalId = const Value.absent(),
+    this.templateId = const Value.absent(),
+    this.vigenciaInicio = const Value.absent(),
+    this.vigenciaFim = const Value.absent(),
+    this.shareToken = const Value.absent(),
+    this.pdfUrl = const Value.absent(),
+    this.hashDocumento = const Value.absent(),
+    this.totalSignatarios = const Value.absent(),
+    this.linkAssinatura = const Value.absent(),
+    this.clienteNome = const Value.absent(),
+    this.assinaturasRealizadas = const Value.absent(),
+    required DateTime updatedAt,
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       providerId = Value(providerId),
+       clientId = Value(clientId),
+       updatedAt = Value(updatedAt);
+  static Insertable<CachedContract> custom({
+    Expression<String>? id,
+    Expression<String>? providerId,
+    Expression<String>? clientId,
+    Expression<String>? status,
+    Expression<String>? textoFinal,
+    Expression<String>? proposalId,
+    Expression<String>? templateId,
+    Expression<DateTime>? vigenciaInicio,
+    Expression<DateTime>? vigenciaFim,
+    Expression<String>? shareToken,
+    Expression<String>? pdfUrl,
+    Expression<String>? hashDocumento,
+    Expression<int>? totalSignatarios,
+    Expression<String>? linkAssinatura,
+    Expression<String>? clienteNome,
+    Expression<int>? assinaturasRealizadas,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (providerId != null) 'provider_id': providerId,
+      if (clientId != null) 'client_id': clientId,
+      if (status != null) 'status': status,
+      if (textoFinal != null) 'texto_final': textoFinal,
+      if (proposalId != null) 'proposal_id': proposalId,
+      if (templateId != null) 'template_id': templateId,
+      if (vigenciaInicio != null) 'vigencia_inicio': vigenciaInicio,
+      if (vigenciaFim != null) 'vigencia_fim': vigenciaFim,
+      if (shareToken != null) 'share_token': shareToken,
+      if (pdfUrl != null) 'pdf_url': pdfUrl,
+      if (hashDocumento != null) 'hash_documento': hashDocumento,
+      if (totalSignatarios != null) 'total_signatarios': totalSignatarios,
+      if (linkAssinatura != null) 'link_assinatura': linkAssinatura,
+      if (clienteNome != null) 'cliente_nome': clienteNome,
+      if (assinaturasRealizadas != null)
+        'assinaturas_realizadas': assinaturasRealizadas,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CachedContractsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? providerId,
+    Value<String>? clientId,
+    Value<String>? status,
+    Value<String?>? textoFinal,
+    Value<String?>? proposalId,
+    Value<String?>? templateId,
+    Value<DateTime?>? vigenciaInicio,
+    Value<DateTime?>? vigenciaFim,
+    Value<String?>? shareToken,
+    Value<String?>? pdfUrl,
+    Value<String?>? hashDocumento,
+    Value<int>? totalSignatarios,
+    Value<String?>? linkAssinatura,
+    Value<String?>? clienteNome,
+    Value<int?>? assinaturasRealizadas,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return CachedContractsCompanion(
+      id: id ?? this.id,
+      providerId: providerId ?? this.providerId,
+      clientId: clientId ?? this.clientId,
+      status: status ?? this.status,
+      textoFinal: textoFinal ?? this.textoFinal,
+      proposalId: proposalId ?? this.proposalId,
+      templateId: templateId ?? this.templateId,
+      vigenciaInicio: vigenciaInicio ?? this.vigenciaInicio,
+      vigenciaFim: vigenciaFim ?? this.vigenciaFim,
+      shareToken: shareToken ?? this.shareToken,
+      pdfUrl: pdfUrl ?? this.pdfUrl,
+      hashDocumento: hashDocumento ?? this.hashDocumento,
+      totalSignatarios: totalSignatarios ?? this.totalSignatarios,
+      linkAssinatura: linkAssinatura ?? this.linkAssinatura,
+      clienteNome: clienteNome ?? this.clienteNome,
+      assinaturasRealizadas:
+          assinaturasRealizadas ?? this.assinaturasRealizadas,
+      updatedAt: updatedAt ?? this.updatedAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (providerId.present) {
+      map['provider_id'] = Variable<String>(providerId.value);
+    }
+    if (clientId.present) {
+      map['client_id'] = Variable<String>(clientId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (textoFinal.present) {
+      map['texto_final'] = Variable<String>(textoFinal.value);
+    }
+    if (proposalId.present) {
+      map['proposal_id'] = Variable<String>(proposalId.value);
+    }
+    if (templateId.present) {
+      map['template_id'] = Variable<String>(templateId.value);
+    }
+    if (vigenciaInicio.present) {
+      map['vigencia_inicio'] = Variable<DateTime>(vigenciaInicio.value);
+    }
+    if (vigenciaFim.present) {
+      map['vigencia_fim'] = Variable<DateTime>(vigenciaFim.value);
+    }
+    if (shareToken.present) {
+      map['share_token'] = Variable<String>(shareToken.value);
+    }
+    if (pdfUrl.present) {
+      map['pdf_url'] = Variable<String>(pdfUrl.value);
+    }
+    if (hashDocumento.present) {
+      map['hash_documento'] = Variable<String>(hashDocumento.value);
+    }
+    if (totalSignatarios.present) {
+      map['total_signatarios'] = Variable<int>(totalSignatarios.value);
+    }
+    if (linkAssinatura.present) {
+      map['link_assinatura'] = Variable<String>(linkAssinatura.value);
+    }
+    if (clienteNome.present) {
+      map['cliente_nome'] = Variable<String>(clienteNome.value);
+    }
+    if (assinaturasRealizadas.present) {
+      map['assinaturas_realizadas'] = Variable<int>(
+        assinaturasRealizadas.value,
+      );
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedContractsCompanion(')
+          ..write('id: $id, ')
+          ..write('providerId: $providerId, ')
+          ..write('clientId: $clientId, ')
+          ..write('status: $status, ')
+          ..write('textoFinal: $textoFinal, ')
+          ..write('proposalId: $proposalId, ')
+          ..write('templateId: $templateId, ')
+          ..write('vigenciaInicio: $vigenciaInicio, ')
+          ..write('vigenciaFim: $vigenciaFim, ')
+          ..write('shareToken: $shareToken, ')
+          ..write('pdfUrl: $pdfUrl, ')
+          ..write('hashDocumento: $hashDocumento, ')
+          ..write('totalSignatarios: $totalSignatarios, ')
+          ..write('linkAssinatura: $linkAssinatura, ')
+          ..write('clienteNome: $clienteNome, ')
+          ..write('assinaturasRealizadas: $assinaturasRealizadas, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CachedContractTemplatesTable extends CachedContractTemplates
+    with TableInfo<$CachedContractTemplatesTable, CachedContractTemplate> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CachedContractTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerIdMeta = const VerificationMeta(
+    'providerId',
+  );
+  @override
+  late final GeneratedColumn<String> providerId = GeneratedColumn<String>(
+    'provider_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nomeMeta = const VerificationMeta('nome');
+  @override
+  late final GeneratedColumn<String> nome = GeneratedColumn<String>(
+    'nome',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _corpoJsonMeta = const VerificationMeta(
+    'corpoJson',
+  );
+  @override
+  late final GeneratedColumn<String> corpoJson = GeneratedColumn<String>(
+    'corpo_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _versaoMeta = const VerificationMeta('versao');
+  @override
+  late final GeneratedColumn<int> versao = GeneratedColumn<int>(
+    'versao',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    providerId,
+    nome,
+    corpoJson,
+    versao,
+    updatedAt,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cached_contract_templates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CachedContractTemplate> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('provider_id')) {
+      context.handle(
+        _providerIdMeta,
+        providerId.isAcceptableOrUnknown(data['provider_id']!, _providerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_providerIdMeta);
+    }
+    if (data.containsKey('nome')) {
+      context.handle(
+        _nomeMeta,
+        nome.isAcceptableOrUnknown(data['nome']!, _nomeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nomeMeta);
+    }
+    if (data.containsKey('corpo_json')) {
+      context.handle(
+        _corpoJsonMeta,
+        corpoJson.isAcceptableOrUnknown(data['corpo_json']!, _corpoJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_corpoJsonMeta);
+    }
+    if (data.containsKey('versao')) {
+      context.handle(
+        _versaoMeta,
+        versao.isAcceptableOrUnknown(data['versao']!, _versaoMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CachedContractTemplate map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CachedContractTemplate(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      providerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_id'],
+      )!,
+      nome: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nome'],
+      )!,
+      corpoJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}corpo_json'],
+      )!,
+      versao: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}versao'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $CachedContractTemplatesTable createAlias(String alias) {
+    return $CachedContractTemplatesTable(attachedDatabase, alias);
+  }
+}
+
+class CachedContractTemplate extends DataClass
+    implements Insertable<CachedContractTemplate> {
+  final String id;
+  final String providerId;
+  final String nome;
+  final String corpoJson;
+  final int versao;
+  final DateTime updatedAt;
+  final DateTime? syncedAt;
+  const CachedContractTemplate({
+    required this.id,
+    required this.providerId,
+    required this.nome,
+    required this.corpoJson,
+    required this.versao,
+    required this.updatedAt,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['provider_id'] = Variable<String>(providerId);
+    map['nome'] = Variable<String>(nome);
+    map['corpo_json'] = Variable<String>(corpoJson);
+    map['versao'] = Variable<int>(versao);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  CachedContractTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return CachedContractTemplatesCompanion(
+      id: Value(id),
+      providerId: Value(providerId),
+      nome: Value(nome),
+      corpoJson: Value(corpoJson),
+      versao: Value(versao),
+      updatedAt: Value(updatedAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory CachedContractTemplate.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CachedContractTemplate(
+      id: serializer.fromJson<String>(json['id']),
+      providerId: serializer.fromJson<String>(json['providerId']),
+      nome: serializer.fromJson<String>(json['nome']),
+      corpoJson: serializer.fromJson<String>(json['corpoJson']),
+      versao: serializer.fromJson<int>(json['versao']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'providerId': serializer.toJson<String>(providerId),
+      'nome': serializer.toJson<String>(nome),
+      'corpoJson': serializer.toJson<String>(corpoJson),
+      'versao': serializer.toJson<int>(versao),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  CachedContractTemplate copyWith({
+    String? id,
+    String? providerId,
+    String? nome,
+    String? corpoJson,
+    int? versao,
+    DateTime? updatedAt,
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => CachedContractTemplate(
+    id: id ?? this.id,
+    providerId: providerId ?? this.providerId,
+    nome: nome ?? this.nome,
+    corpoJson: corpoJson ?? this.corpoJson,
+    versao: versao ?? this.versao,
+    updatedAt: updatedAt ?? this.updatedAt,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  CachedContractTemplate copyWithCompanion(
+    CachedContractTemplatesCompanion data,
+  ) {
+    return CachedContractTemplate(
+      id: data.id.present ? data.id.value : this.id,
+      providerId: data.providerId.present
+          ? data.providerId.value
+          : this.providerId,
+      nome: data.nome.present ? data.nome.value : this.nome,
+      corpoJson: data.corpoJson.present ? data.corpoJson.value : this.corpoJson,
+      versao: data.versao.present ? data.versao.value : this.versao,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedContractTemplate(')
+          ..write('id: $id, ')
+          ..write('providerId: $providerId, ')
+          ..write('nome: $nome, ')
+          ..write('corpoJson: $corpoJson, ')
+          ..write('versao: $versao, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, providerId, nome, corpoJson, versao, updatedAt, syncedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CachedContractTemplate &&
+          other.id == this.id &&
+          other.providerId == this.providerId &&
+          other.nome == this.nome &&
+          other.corpoJson == this.corpoJson &&
+          other.versao == this.versao &&
+          other.updatedAt == this.updatedAt &&
+          other.syncedAt == this.syncedAt);
+}
+
+class CachedContractTemplatesCompanion
+    extends UpdateCompanion<CachedContractTemplate> {
+  final Value<String> id;
+  final Value<String> providerId;
+  final Value<String> nome;
+  final Value<String> corpoJson;
+  final Value<int> versao;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const CachedContractTemplatesCompanion({
+    this.id = const Value.absent(),
+    this.providerId = const Value.absent(),
+    this.nome = const Value.absent(),
+    this.corpoJson = const Value.absent(),
+    this.versao = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CachedContractTemplatesCompanion.insert({
+    required String id,
+    required String providerId,
+    required String nome,
+    required String corpoJson,
+    this.versao = const Value.absent(),
+    required DateTime updatedAt,
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       providerId = Value(providerId),
+       nome = Value(nome),
+       corpoJson = Value(corpoJson),
+       updatedAt = Value(updatedAt);
+  static Insertable<CachedContractTemplate> custom({
+    Expression<String>? id,
+    Expression<String>? providerId,
+    Expression<String>? nome,
+    Expression<String>? corpoJson,
+    Expression<int>? versao,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (providerId != null) 'provider_id': providerId,
+      if (nome != null) 'nome': nome,
+      if (corpoJson != null) 'corpo_json': corpoJson,
+      if (versao != null) 'versao': versao,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CachedContractTemplatesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? providerId,
+    Value<String>? nome,
+    Value<String>? corpoJson,
+    Value<int>? versao,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return CachedContractTemplatesCompanion(
+      id: id ?? this.id,
+      providerId: providerId ?? this.providerId,
+      nome: nome ?? this.nome,
+      corpoJson: corpoJson ?? this.corpoJson,
+      versao: versao ?? this.versao,
+      updatedAt: updatedAt ?? this.updatedAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (providerId.present) {
+      map['provider_id'] = Variable<String>(providerId.value);
+    }
+    if (nome.present) {
+      map['nome'] = Variable<String>(nome.value);
+    }
+    if (corpoJson.present) {
+      map['corpo_json'] = Variable<String>(corpoJson.value);
+    }
+    if (versao.present) {
+      map['versao'] = Variable<int>(versao.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedContractTemplatesCompanion(')
+          ..write('id: $id, ')
+          ..write('providerId: $providerId, ')
+          ..write('nome: $nome, ')
+          ..write('corpoJson: $corpoJson, ')
+          ..write('versao: $versao, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncedAt: $syncedAt, ')
           ..write('rowid: $rowid')
@@ -2455,6 +4480,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CachedProposalsTable cachedProposals = $CachedProposalsTable(
     this,
   );
+  late final $CachedProposalTemplatesTable cachedProposalTemplates =
+      $CachedProposalTemplatesTable(this);
+  late final $CachedContractsTable cachedContracts = $CachedContractsTable(
+    this,
+  );
+  late final $CachedContractTemplatesTable cachedContractTemplates =
+      $CachedContractTemplatesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2464,6 +4496,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     cachedClients,
     cachedProducts,
     cachedProposals,
+    cachedProposalTemplates,
+    cachedContracts,
+    cachedContractTemplates,
   ];
 }
 
@@ -3362,6 +5397,7 @@ typedef $$CachedProposalsTableCreateCompanionBuilder =
       Value<double> desconto,
       Value<String?> observacoes,
       Value<DateTime?> validade,
+      Value<DateTime?> archivedAt,
       required DateTime updatedAt,
       Value<DateTime?> syncedAt,
       Value<int> rowid,
@@ -3377,6 +5413,7 @@ typedef $$CachedProposalsTableUpdateCompanionBuilder =
       Value<double> desconto,
       Value<String?> observacoes,
       Value<DateTime?> validade,
+      Value<DateTime?> archivedAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> syncedAt,
       Value<int> rowid,
@@ -3433,6 +5470,11 @@ class $$CachedProposalsTableFilterComposer
 
   ColumnFilters<DateTime> get validade => $composableBuilder(
     column: $table.validade,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3501,6 +5543,11 @@ class $$CachedProposalsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -3551,6 +5598,11 @@ class $$CachedProposalsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get validade =>
       $composableBuilder(column: $table.validade, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -3605,6 +5657,7 @@ class $$CachedProposalsTableTableManager
                 Value<double> desconto = const Value.absent(),
                 Value<String?> observacoes = const Value.absent(),
                 Value<DateTime?> validade = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> syncedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -3618,6 +5671,7 @@ class $$CachedProposalsTableTableManager
                 desconto: desconto,
                 observacoes: observacoes,
                 validade: validade,
+                archivedAt: archivedAt,
                 updatedAt: updatedAt,
                 syncedAt: syncedAt,
                 rowid: rowid,
@@ -3633,6 +5687,7 @@ class $$CachedProposalsTableTableManager
                 Value<double> desconto = const Value.absent(),
                 Value<String?> observacoes = const Value.absent(),
                 Value<DateTime?> validade = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
                 required DateTime updatedAt,
                 Value<DateTime?> syncedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -3646,6 +5701,7 @@ class $$CachedProposalsTableTableManager
                 desconto: desconto,
                 observacoes: observacoes,
                 validade: validade,
+                archivedAt: archivedAt,
                 updatedAt: updatedAt,
                 syncedAt: syncedAt,
                 rowid: rowid,
@@ -3675,6 +5731,1001 @@ typedef $$CachedProposalsTableProcessedTableManager =
       CachedProposal,
       PrefetchHooks Function()
     >;
+typedef $$CachedProposalTemplatesTableCreateCompanionBuilder =
+    CachedProposalTemplatesCompanion Function({
+      required String id,
+      required String providerId,
+      required String nome,
+      required String corpoJson,
+      Value<bool> ativo,
+      required DateTime updatedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$CachedProposalTemplatesTableUpdateCompanionBuilder =
+    CachedProposalTemplatesCompanion Function({
+      Value<String> id,
+      Value<String> providerId,
+      Value<String> nome,
+      Value<String> corpoJson,
+      Value<bool> ativo,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$CachedProposalTemplatesTableFilterComposer
+    extends Composer<_$AppDatabase, $CachedProposalTemplatesTable> {
+  $$CachedProposalTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nome => $composableBuilder(
+    column: $table.nome,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get corpoJson => $composableBuilder(
+    column: $table.corpoJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get ativo => $composableBuilder(
+    column: $table.ativo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CachedProposalTemplatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CachedProposalTemplatesTable> {
+  $$CachedProposalTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nome => $composableBuilder(
+    column: $table.nome,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get corpoJson => $composableBuilder(
+    column: $table.corpoJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get ativo => $composableBuilder(
+    column: $table.ativo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CachedProposalTemplatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CachedProposalTemplatesTable> {
+  $$CachedProposalTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nome =>
+      $composableBuilder(column: $table.nome, builder: (column) => column);
+
+  GeneratedColumn<String> get corpoJson =>
+      $composableBuilder(column: $table.corpoJson, builder: (column) => column);
+
+  GeneratedColumn<bool> get ativo =>
+      $composableBuilder(column: $table.ativo, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$CachedProposalTemplatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CachedProposalTemplatesTable,
+          CachedProposalTemplate,
+          $$CachedProposalTemplatesTableFilterComposer,
+          $$CachedProposalTemplatesTableOrderingComposer,
+          $$CachedProposalTemplatesTableAnnotationComposer,
+          $$CachedProposalTemplatesTableCreateCompanionBuilder,
+          $$CachedProposalTemplatesTableUpdateCompanionBuilder,
+          (
+            CachedProposalTemplate,
+            BaseReferences<
+              _$AppDatabase,
+              $CachedProposalTemplatesTable,
+              CachedProposalTemplate
+            >,
+          ),
+          CachedProposalTemplate,
+          PrefetchHooks Function()
+        > {
+  $$CachedProposalTemplatesTableTableManager(
+    _$AppDatabase db,
+    $CachedProposalTemplatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CachedProposalTemplatesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$CachedProposalTemplatesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CachedProposalTemplatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> providerId = const Value.absent(),
+                Value<String> nome = const Value.absent(),
+                Value<String> corpoJson = const Value.absent(),
+                Value<bool> ativo = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedProposalTemplatesCompanion(
+                id: id,
+                providerId: providerId,
+                nome: nome,
+                corpoJson: corpoJson,
+                ativo: ativo,
+                updatedAt: updatedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String providerId,
+                required String nome,
+                required String corpoJson,
+                Value<bool> ativo = const Value.absent(),
+                required DateTime updatedAt,
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedProposalTemplatesCompanion.insert(
+                id: id,
+                providerId: providerId,
+                nome: nome,
+                corpoJson: corpoJson,
+                ativo: ativo,
+                updatedAt: updatedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CachedProposalTemplatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CachedProposalTemplatesTable,
+      CachedProposalTemplate,
+      $$CachedProposalTemplatesTableFilterComposer,
+      $$CachedProposalTemplatesTableOrderingComposer,
+      $$CachedProposalTemplatesTableAnnotationComposer,
+      $$CachedProposalTemplatesTableCreateCompanionBuilder,
+      $$CachedProposalTemplatesTableUpdateCompanionBuilder,
+      (
+        CachedProposalTemplate,
+        BaseReferences<
+          _$AppDatabase,
+          $CachedProposalTemplatesTable,
+          CachedProposalTemplate
+        >,
+      ),
+      CachedProposalTemplate,
+      PrefetchHooks Function()
+    >;
+typedef $$CachedContractsTableCreateCompanionBuilder =
+    CachedContractsCompanion Function({
+      required String id,
+      required String providerId,
+      required String clientId,
+      Value<String> status,
+      Value<String?> textoFinal,
+      Value<String?> proposalId,
+      Value<String?> templateId,
+      Value<DateTime?> vigenciaInicio,
+      Value<DateTime?> vigenciaFim,
+      Value<String?> shareToken,
+      Value<String?> pdfUrl,
+      Value<String?> hashDocumento,
+      Value<int> totalSignatarios,
+      Value<String?> linkAssinatura,
+      Value<String?> clienteNome,
+      Value<int?> assinaturasRealizadas,
+      required DateTime updatedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$CachedContractsTableUpdateCompanionBuilder =
+    CachedContractsCompanion Function({
+      Value<String> id,
+      Value<String> providerId,
+      Value<String> clientId,
+      Value<String> status,
+      Value<String?> textoFinal,
+      Value<String?> proposalId,
+      Value<String?> templateId,
+      Value<DateTime?> vigenciaInicio,
+      Value<DateTime?> vigenciaFim,
+      Value<String?> shareToken,
+      Value<String?> pdfUrl,
+      Value<String?> hashDocumento,
+      Value<int> totalSignatarios,
+      Value<String?> linkAssinatura,
+      Value<String?> clienteNome,
+      Value<int?> assinaturasRealizadas,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$CachedContractsTableFilterComposer
+    extends Composer<_$AppDatabase, $CachedContractsTable> {
+  $$CachedContractsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get textoFinal => $composableBuilder(
+    column: $table.textoFinal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get proposalId => $composableBuilder(
+    column: $table.proposalId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get templateId => $composableBuilder(
+    column: $table.templateId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get vigenciaInicio => $composableBuilder(
+    column: $table.vigenciaInicio,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get vigenciaFim => $composableBuilder(
+    column: $table.vigenciaFim,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get shareToken => $composableBuilder(
+    column: $table.shareToken,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pdfUrl => $composableBuilder(
+    column: $table.pdfUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get hashDocumento => $composableBuilder(
+    column: $table.hashDocumento,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalSignatarios => $composableBuilder(
+    column: $table.totalSignatarios,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get linkAssinatura => $composableBuilder(
+    column: $table.linkAssinatura,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clienteNome => $composableBuilder(
+    column: $table.clienteNome,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get assinaturasRealizadas => $composableBuilder(
+    column: $table.assinaturasRealizadas,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CachedContractsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CachedContractsTable> {
+  $$CachedContractsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get textoFinal => $composableBuilder(
+    column: $table.textoFinal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get proposalId => $composableBuilder(
+    column: $table.proposalId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get templateId => $composableBuilder(
+    column: $table.templateId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get vigenciaInicio => $composableBuilder(
+    column: $table.vigenciaInicio,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get vigenciaFim => $composableBuilder(
+    column: $table.vigenciaFim,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get shareToken => $composableBuilder(
+    column: $table.shareToken,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pdfUrl => $composableBuilder(
+    column: $table.pdfUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get hashDocumento => $composableBuilder(
+    column: $table.hashDocumento,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalSignatarios => $composableBuilder(
+    column: $table.totalSignatarios,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get linkAssinatura => $composableBuilder(
+    column: $table.linkAssinatura,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clienteNome => $composableBuilder(
+    column: $table.clienteNome,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get assinaturasRealizadas => $composableBuilder(
+    column: $table.assinaturasRealizadas,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CachedContractsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CachedContractsTable> {
+  $$CachedContractsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get textoFinal => $composableBuilder(
+    column: $table.textoFinal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get proposalId => $composableBuilder(
+    column: $table.proposalId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get templateId => $composableBuilder(
+    column: $table.templateId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get vigenciaInicio => $composableBuilder(
+    column: $table.vigenciaInicio,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get vigenciaFim => $composableBuilder(
+    column: $table.vigenciaFim,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get shareToken => $composableBuilder(
+    column: $table.shareToken,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get pdfUrl =>
+      $composableBuilder(column: $table.pdfUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get hashDocumento => $composableBuilder(
+    column: $table.hashDocumento,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalSignatarios => $composableBuilder(
+    column: $table.totalSignatarios,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get linkAssinatura => $composableBuilder(
+    column: $table.linkAssinatura,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get clienteNome => $composableBuilder(
+    column: $table.clienteNome,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get assinaturasRealizadas => $composableBuilder(
+    column: $table.assinaturasRealizadas,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$CachedContractsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CachedContractsTable,
+          CachedContract,
+          $$CachedContractsTableFilterComposer,
+          $$CachedContractsTableOrderingComposer,
+          $$CachedContractsTableAnnotationComposer,
+          $$CachedContractsTableCreateCompanionBuilder,
+          $$CachedContractsTableUpdateCompanionBuilder,
+          (
+            CachedContract,
+            BaseReferences<
+              _$AppDatabase,
+              $CachedContractsTable,
+              CachedContract
+            >,
+          ),
+          CachedContract,
+          PrefetchHooks Function()
+        > {
+  $$CachedContractsTableTableManager(
+    _$AppDatabase db,
+    $CachedContractsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CachedContractsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CachedContractsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CachedContractsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> providerId = const Value.absent(),
+                Value<String> clientId = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> textoFinal = const Value.absent(),
+                Value<String?> proposalId = const Value.absent(),
+                Value<String?> templateId = const Value.absent(),
+                Value<DateTime?> vigenciaInicio = const Value.absent(),
+                Value<DateTime?> vigenciaFim = const Value.absent(),
+                Value<String?> shareToken = const Value.absent(),
+                Value<String?> pdfUrl = const Value.absent(),
+                Value<String?> hashDocumento = const Value.absent(),
+                Value<int> totalSignatarios = const Value.absent(),
+                Value<String?> linkAssinatura = const Value.absent(),
+                Value<String?> clienteNome = const Value.absent(),
+                Value<int?> assinaturasRealizadas = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedContractsCompanion(
+                id: id,
+                providerId: providerId,
+                clientId: clientId,
+                status: status,
+                textoFinal: textoFinal,
+                proposalId: proposalId,
+                templateId: templateId,
+                vigenciaInicio: vigenciaInicio,
+                vigenciaFim: vigenciaFim,
+                shareToken: shareToken,
+                pdfUrl: pdfUrl,
+                hashDocumento: hashDocumento,
+                totalSignatarios: totalSignatarios,
+                linkAssinatura: linkAssinatura,
+                clienteNome: clienteNome,
+                assinaturasRealizadas: assinaturasRealizadas,
+                updatedAt: updatedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String providerId,
+                required String clientId,
+                Value<String> status = const Value.absent(),
+                Value<String?> textoFinal = const Value.absent(),
+                Value<String?> proposalId = const Value.absent(),
+                Value<String?> templateId = const Value.absent(),
+                Value<DateTime?> vigenciaInicio = const Value.absent(),
+                Value<DateTime?> vigenciaFim = const Value.absent(),
+                Value<String?> shareToken = const Value.absent(),
+                Value<String?> pdfUrl = const Value.absent(),
+                Value<String?> hashDocumento = const Value.absent(),
+                Value<int> totalSignatarios = const Value.absent(),
+                Value<String?> linkAssinatura = const Value.absent(),
+                Value<String?> clienteNome = const Value.absent(),
+                Value<int?> assinaturasRealizadas = const Value.absent(),
+                required DateTime updatedAt,
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedContractsCompanion.insert(
+                id: id,
+                providerId: providerId,
+                clientId: clientId,
+                status: status,
+                textoFinal: textoFinal,
+                proposalId: proposalId,
+                templateId: templateId,
+                vigenciaInicio: vigenciaInicio,
+                vigenciaFim: vigenciaFim,
+                shareToken: shareToken,
+                pdfUrl: pdfUrl,
+                hashDocumento: hashDocumento,
+                totalSignatarios: totalSignatarios,
+                linkAssinatura: linkAssinatura,
+                clienteNome: clienteNome,
+                assinaturasRealizadas: assinaturasRealizadas,
+                updatedAt: updatedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CachedContractsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CachedContractsTable,
+      CachedContract,
+      $$CachedContractsTableFilterComposer,
+      $$CachedContractsTableOrderingComposer,
+      $$CachedContractsTableAnnotationComposer,
+      $$CachedContractsTableCreateCompanionBuilder,
+      $$CachedContractsTableUpdateCompanionBuilder,
+      (
+        CachedContract,
+        BaseReferences<_$AppDatabase, $CachedContractsTable, CachedContract>,
+      ),
+      CachedContract,
+      PrefetchHooks Function()
+    >;
+typedef $$CachedContractTemplatesTableCreateCompanionBuilder =
+    CachedContractTemplatesCompanion Function({
+      required String id,
+      required String providerId,
+      required String nome,
+      required String corpoJson,
+      Value<int> versao,
+      required DateTime updatedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$CachedContractTemplatesTableUpdateCompanionBuilder =
+    CachedContractTemplatesCompanion Function({
+      Value<String> id,
+      Value<String> providerId,
+      Value<String> nome,
+      Value<String> corpoJson,
+      Value<int> versao,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$CachedContractTemplatesTableFilterComposer
+    extends Composer<_$AppDatabase, $CachedContractTemplatesTable> {
+  $$CachedContractTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nome => $composableBuilder(
+    column: $table.nome,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get corpoJson => $composableBuilder(
+    column: $table.corpoJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get versao => $composableBuilder(
+    column: $table.versao,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CachedContractTemplatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CachedContractTemplatesTable> {
+  $$CachedContractTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nome => $composableBuilder(
+    column: $table.nome,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get corpoJson => $composableBuilder(
+    column: $table.corpoJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get versao => $composableBuilder(
+    column: $table.versao,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CachedContractTemplatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CachedContractTemplatesTable> {
+  $$CachedContractTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nome =>
+      $composableBuilder(column: $table.nome, builder: (column) => column);
+
+  GeneratedColumn<String> get corpoJson =>
+      $composableBuilder(column: $table.corpoJson, builder: (column) => column);
+
+  GeneratedColumn<int> get versao =>
+      $composableBuilder(column: $table.versao, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$CachedContractTemplatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CachedContractTemplatesTable,
+          CachedContractTemplate,
+          $$CachedContractTemplatesTableFilterComposer,
+          $$CachedContractTemplatesTableOrderingComposer,
+          $$CachedContractTemplatesTableAnnotationComposer,
+          $$CachedContractTemplatesTableCreateCompanionBuilder,
+          $$CachedContractTemplatesTableUpdateCompanionBuilder,
+          (
+            CachedContractTemplate,
+            BaseReferences<
+              _$AppDatabase,
+              $CachedContractTemplatesTable,
+              CachedContractTemplate
+            >,
+          ),
+          CachedContractTemplate,
+          PrefetchHooks Function()
+        > {
+  $$CachedContractTemplatesTableTableManager(
+    _$AppDatabase db,
+    $CachedContractTemplatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CachedContractTemplatesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$CachedContractTemplatesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CachedContractTemplatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> providerId = const Value.absent(),
+                Value<String> nome = const Value.absent(),
+                Value<String> corpoJson = const Value.absent(),
+                Value<int> versao = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedContractTemplatesCompanion(
+                id: id,
+                providerId: providerId,
+                nome: nome,
+                corpoJson: corpoJson,
+                versao: versao,
+                updatedAt: updatedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String providerId,
+                required String nome,
+                required String corpoJson,
+                Value<int> versao = const Value.absent(),
+                required DateTime updatedAt,
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedContractTemplatesCompanion.insert(
+                id: id,
+                providerId: providerId,
+                nome: nome,
+                corpoJson: corpoJson,
+                versao: versao,
+                updatedAt: updatedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CachedContractTemplatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CachedContractTemplatesTable,
+      CachedContractTemplate,
+      $$CachedContractTemplatesTableFilterComposer,
+      $$CachedContractTemplatesTableOrderingComposer,
+      $$CachedContractTemplatesTableAnnotationComposer,
+      $$CachedContractTemplatesTableCreateCompanionBuilder,
+      $$CachedContractTemplatesTableUpdateCompanionBuilder,
+      (
+        CachedContractTemplate,
+        BaseReferences<
+          _$AppDatabase,
+          $CachedContractTemplatesTable,
+          CachedContractTemplate
+        >,
+      ),
+      CachedContractTemplate,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3687,6 +6738,18 @@ class $AppDatabaseManager {
       $$CachedProductsTableTableManager(_db, _db.cachedProducts);
   $$CachedProposalsTableTableManager get cachedProposals =>
       $$CachedProposalsTableTableManager(_db, _db.cachedProposals);
+  $$CachedProposalTemplatesTableTableManager get cachedProposalTemplates =>
+      $$CachedProposalTemplatesTableTableManager(
+        _db,
+        _db.cachedProposalTemplates,
+      );
+  $$CachedContractsTableTableManager get cachedContracts =>
+      $$CachedContractsTableTableManager(_db, _db.cachedContracts);
+  $$CachedContractTemplatesTableTableManager get cachedContractTemplates =>
+      $$CachedContractTemplatesTableTableManager(
+        _db,
+        _db.cachedContractTemplates,
+      );
 }
 
 // **************************************************************************

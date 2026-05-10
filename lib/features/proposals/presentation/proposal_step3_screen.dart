@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/active_provider_context.dart';
 import '../../../core/services/pdf_service.dart';
 import '../../../core/services/share_service.dart';
+import '../../../data/repositories/proposal_repository.dart';
+import '../../../shared/widgets/tenant_brand_card.dart';
 import '../domain/proposal_notifier.dart';
 import '../domain/proposal_state.dart';
 
@@ -25,6 +28,7 @@ class _ProposalStep3ScreenState extends ConsumerState<ProposalStep3Screen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = ref.watch(proposalWizardProvider);
+    final activeProviderAsync = ref.watch(activeProviderProvider);
 
     if (state is! ProposalWizardStep3 && state is! ProposalWizardSaving && state is! ProposalWizardError) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -45,6 +49,18 @@ class _ProposalStep3ScreenState extends ConsumerState<ProposalStep3Screen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            activeProviderAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+              data: (provider) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: TenantBrandCard(
+                  provider: provider,
+                  title: 'Identidade da proposta',
+                  subtitle: draft.providerId ?? provider?.empresa,
+                ),
+              ),
+            ),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -182,13 +198,20 @@ class _ProposalStep3ScreenState extends ConsumerState<ProposalStep3Screen> {
                                   'proposta_${draft.id}.pdf',
                                 );
                             if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('PDF salvo em $path')));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Prévia local salva em $path')));
                           }
                         : null,
                     icon: const Icon(Icons.picture_as_pdf_outlined),
-                    label: const Text('Salvar PDF'),
+                    label: const Text('Salvar prévia local'),
                   ),
                 ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Ao salvar, a proposta também gera e envia um PDF final para o Storage. O botão acima mantém a prévia local para conferência rápida.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -212,10 +235,22 @@ class _ProposalStep3ScreenState extends ConsumerState<ProposalStep3Screen> {
 
       final currentState = ref.read(proposalWizardProvider);
       if (currentState is ProposalWizardSuccess) {
+        final savedProposal = currentState.proposal;
+        final pdfBytes = await ref.read(pdfServiceProvider).generateProposalPdf(savedProposal);
+        final pdfUrl = await ref.read(pdfServiceProvider).uploadPdf(
+              bytes: pdfBytes,
+              providerId: savedProposal.providerId ?? '',
+              fileName: 'proposal_v${savedProposal.versao}.pdf',
+              objectPath: '${savedProposal.providerId}/proposals/${savedProposal.id}/proposal_v${savedProposal.versao}.pdf',
+            );
+        await ref.read(proposalRepositoryProvider).updatePdfUrl(savedProposal.id!, pdfUrl);
+        ref.invalidate(proposalDetailProvider(savedProposal.id!));
+
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Proposta salva com sucesso!')),
+          const SnackBar(content: Text('Proposta salva com sucesso! PDF final enviado ao Storage.')),
         );
-        context.go('/proposals/${currentState.proposal.id}');
+        context.go('/proposals/${savedProposal.id}');
         ref.read(proposalWizardProvider.notifier).reset();
       }
     } catch (e) {

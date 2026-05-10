@@ -123,9 +123,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       // Rotas filhas (fora do BottomNav, para cobrir tela inteira)
+      GoRoute(path: '/clients/archived', builder: (context, state) => const ClientListScreen(archivedOnly: true)),
       GoRoute(path: '/clients/:id', builder: (context, state) => ClientDetailScreen(clientId: state.pathParameters['id']!)),
-      
+
       GoRoute(path: '/providers', builder: (context, state) => const ProviderListScreen()),
+      GoRoute(path: '/providers/new', builder: (context, state) => const ProviderEditScreen(providerId: 'new')),
       GoRoute(path: '/providers/:id/edit', builder: (context, state) => ProviderEditScreen(providerId: state.pathParameters['id']!)),
       GoRoute(path: '/proposal-templates', builder: (context, state) => const ProposalTemplateListScreen()),
       GoRoute(path: '/proposal-templates/:id', builder: (context, state) => ProposalTemplateEditScreen(templateId: state.pathParameters['id']!)),
@@ -135,6 +137,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/products', builder: (context, state) => const ProductListScreen()),
       GoRoute(path: '/products/:id', builder: (context, state) => ProductDetailScreen(productId: state.pathParameters['id']!)),
       
+      GoRoute(path: '/proposals/archived', builder: (context, state) => const ProposalListScreen(archivedOnly: true)),
       GoRoute(path: '/proposals/new/step1', builder: (context, state) => const ProposalStep1Screen()),
       GoRoute(path: '/proposals/new/step2', builder: (context, state) => const ProposalStep2Screen()),
       GoRoute(path: '/proposals/new/step3', builder: (context, state) => const ProposalStep3Screen()),

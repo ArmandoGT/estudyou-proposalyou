@@ -54,7 +54,7 @@ final class AuthServiceProvider
   AuthService create() => AuthService();
 }
 
-String _$authServiceHash() => r'd3effe28116f5010d2a1f370807e13551f2fee9f';
+String _$authServiceHash() => r'6c740b268c22b9de53d0b62d79d2379c577434ed';
 
 /// Serviço de autenticação como AsyncNotifier keepAlive.
 ///

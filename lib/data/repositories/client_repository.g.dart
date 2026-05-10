@@ -53,4 +53,4 @@ final class ClientRepositoryProvider
   }
 }
 
-String _$clientRepositoryHash() => r'96e849023af37407ce3411b4fe45ea907316e434';
+String _$clientRepositoryHash() => r'9c133193012a7711cfa48c4925f68524eef41894';

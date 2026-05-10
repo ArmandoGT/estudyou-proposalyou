@@ -21,8 +21,18 @@ class ProviderListNotifier extends _$ProviderListNotifier {
     return repo.getAll();
   }
 
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(providerRepositoryProvider);
+      return repo.getAll(refreshRemote: true);
+    });
+  }
+
   Future<String?> getActiveProviderSlug() async {
     final auth = ref.read(authServiceProvider.notifier);
+    final scope = await auth.getProviderScopeMode();
+    if (scope == ProviderScopeMode.all) return null;
     final provider = await auth.getCurrentProvider();
     return provider?.empresa;
   }
@@ -32,16 +42,31 @@ class ProviderListNotifier extends _$ProviderListNotifier {
 class ProviderEditNotifier extends _$ProviderEditNotifier {
   @override
   Future<ProviderDto> build(String providerId) async {
+    if (providerId == 'new') {
+      return ProviderDto(
+        id: '',
+        empresa: '',
+        razaoSocial: '',
+        cnpj: '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+    }
+
     final repo = ref.read(providerRepositoryProvider);
     return repo.getById(providerId);
   }
 
-  Future<void> save(ProviderDto dto) async {
+  Future<ProviderDto> save(ProviderDto dto, {required bool isNew}) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repo = ref.read(providerRepositoryProvider);
+      if (isNew) {
+        return repo.create(dto);
+      }
       return repo.update(dto);
     });
+    return state.requireValue;
   }
 
   Future<ProviderDto> uploadLogo({

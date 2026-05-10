@@ -69,6 +69,7 @@ class ContractCertificateScreen extends ConsumerWidget {
                         _CertificateInfoRow('Status', contract.status.toUpperCase()),
                         _CertificateInfoRow('Hash', contract.hashDocumento ?? 'Não gerado'),
                         _CertificateInfoRow('Verificação', ref.read(shareServiceProvider).contractCertificateLink(contract.id)),
+                        _CertificateInfoRow('Assinatura', contract.shareToken?.isNotEmpty == true ? ref.read(shareServiceProvider).contractSignLink(contract) : 'Link indisponível'),
                       ],
                     ),
                   ),
@@ -88,6 +89,16 @@ class ContractCertificateScreen extends ConsumerWidget {
                               : 'PDF final ainda não disponível.',
                           style: theme.textTheme.bodyMedium,
                         ),
+                        if (contract.pdfUrl?.isNotEmpty != true)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              'O certificado pode existir antes da consolidação do PDF final.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),

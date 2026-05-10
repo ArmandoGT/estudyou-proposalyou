@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/active_provider_context.dart';
 import '../../../core/services/share_service.dart';
 import '../../../data/repositories/proposal_repository.dart';
+import '../../../shared/widgets/tenant_brand_card.dart';
 import '../../contracts/domain/contract_notifier.dart';
 import '../domain/proposal_notifier.dart';
 import '../domain/proposal_state.dart';
@@ -22,6 +24,7 @@ class ProposalDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final state = ref.watch(proposalDetailProvider(proposalId));
+    final activeProviderAsync = ref.watch(activeProviderProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -44,6 +47,18 @@ class ProposalDetailScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              activeProviderAsync.when(
+                loading: () => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
+                data: (provider) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: TenantBrandCard(
+                    provider: provider,
+                    title: 'Marca da empresa',
+                    subtitle: proposal.providerId,
+                  ),
+                ),
+              ),
               // Header
               Text('Proposta de ${proposal.clienteNome ?? 'Desconhecido'}', style: theme.textTheme.headlineSmall),
               const SizedBox(height: 8),
@@ -129,6 +144,24 @@ class ProposalDetailScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
+                      if (proposal.pdfUrl?.isNotEmpty == true) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('PDF Final:'),
+                            TextButton.icon(
+                              icon: const Icon(Icons.picture_as_pdf_outlined, size: 16),
+                              label: const Text('Copiar Link'),
+                              onPressed: () async {
+                                await ref.read(shareServiceProvider).copyLinkToClipboard(proposal.pdfUrl!);
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link do PDF copiado!')));
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

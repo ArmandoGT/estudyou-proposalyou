@@ -55,4 +55,4 @@ final class ProposalRepositoryProvider
 }
 
 String _$proposalRepositoryHash() =>
-    r'f7fa88ddd37f1a788dde0b43b35321b8bc1541eb';
+    r'48dc59fe67148eacfbbba878de5577734f8833ae';

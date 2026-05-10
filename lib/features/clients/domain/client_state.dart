@@ -28,6 +28,30 @@ final class ClientListError extends ClientListState {
   const ClientListError(this.message);
 }
 
+final class ClientDeletionOption {
+  final String key;
+  final String title;
+  final String description;
+
+  const ClientDeletionOption({
+    required this.key,
+    required this.title,
+    required this.description,
+  });
+}
+
+final class ClientDeletionPreview {
+  final int contractsCount;
+  final int proposalsCount;
+  final List<ClientDeletionOption> options;
+
+  const ClientDeletionPreview({
+    required this.contractsCount,
+    required this.proposalsCount,
+    required this.options,
+  });
+}
+
 /// Estado do detalhe/edição de cliente.
 sealed class ClientDetailState {
   const ClientDetailState();

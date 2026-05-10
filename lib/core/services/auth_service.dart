@@ -11,13 +11,18 @@ import '../../data/dtos/provider_dto.dart';
 import '../../data/repositories/provider_repository.dart';
 import '../../data/supabase/supabase_provider.dart';
 import '../error/app_exception.dart';
+import '../../features/home/domain/home_notifier.dart';
+import '../../features/products/domain/product_notifier.dart';
 
 part 'auth_service.g.dart';
 
 /// Chaves para flutter_secure_storage
 const _kActiveProviderId = 'active_provider_id';
 const _kActiveProviderSlug = 'active_provider_slug';
+const _kProviderScope = 'provider_scope';
 const _kBiometricEnabled = 'biometric_enabled';
+
+enum ProviderScopeMode { provider, all }
 
 /// Serviço de autenticação como AsyncNotifier keepAlive.
 ///
@@ -70,6 +75,7 @@ class AuthService extends _$AuthService {
 
       await _secureStorage.write(key: _kActiveProviderId, value: provider.id);
       await _secureStorage.write(key: _kActiveProviderSlug, value: providerSlug);
+      await _secureStorage.write(key: _kProviderScope, value: ProviderScopeMode.provider.name);
 
       state = AsyncData(response.user);
     } catch (e, st) {
@@ -95,12 +101,31 @@ class AuthService extends _$AuthService {
     final provider = await providerRepo.getBySlug(slug);
     await _secureStorage.write(key: _kActiveProviderId, value: provider.id);
     await _secureStorage.write(key: _kActiveProviderSlug, value: slug);
-    // Força rebuild dos providers que dependem do provider ativo
-    ref.invalidateSelf();
+    await _secureStorage.write(key: _kProviderScope, value: ProviderScopeMode.provider.name);
+    ref.invalidate(homeDashboardProvider);
+    ref.invalidate(productListProvider);
+    state = AsyncData(ref.read(supabaseClientProvider).auth.currentUser);
+  }
+
+  Future<void> switchToAllProviders() async {
+    await _secureStorage.write(key: _kProviderScope, value: ProviderScopeMode.all.name);
+    ref.invalidate(homeDashboardProvider);
+    ref.invalidate(productListProvider);
+    state = AsyncData(ref.read(supabaseClientProvider).auth.currentUser);
+  }
+
+  Future<ProviderScopeMode> getProviderScopeMode() async {
+    final value = await _secureStorage.read(key: _kProviderScope);
+    return value == ProviderScopeMode.all.name
+        ? ProviderScopeMode.all
+        : ProviderScopeMode.provider;
   }
 
   /// Retorna o provider ativo da sessão atual.
   Future<ProviderDto?> getCurrentProvider() async {
+    final scope = await getProviderScopeMode();
+    if (scope == ProviderScopeMode.all) return null;
+
     final slug = await _secureStorage.read(key: _kActiveProviderSlug);
     if (slug == null) return null;
     try {
@@ -113,6 +138,8 @@ class AuthService extends _$AuthService {
 
   /// Retorna o ID do provider ativo.
   Future<String?> getActiveProviderId() async {
+    final scope = await getProviderScopeMode();
+    if (scope == ProviderScopeMode.all) return null;
     return _secureStorage.read(key: _kActiveProviderId);
   }
 
@@ -145,5 +172,16 @@ class AuthService extends _$AuthService {
   Future<bool> isBiometricEnabled() async {
     final value = await _secureStorage.read(key: _kBiometricEnabled);
     return value == 'true';
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      final client = ref.read(supabaseClientProvider);
+      await client.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+    } on AuthApiException catch (e) {
+      throw e.toAppException();
+    }
   }
 }

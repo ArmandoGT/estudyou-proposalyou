@@ -56,4 +56,4 @@ final class ContractTemplateRepositoryProvider
 }
 
 String _$contractTemplateRepositoryHash() =>
-    r'cbd0e30a8809497e5a329e6836ee00bb6f150a9e';
+    r'19db44ed96d1a13ff7fb87ba772bc04cdf96d581';

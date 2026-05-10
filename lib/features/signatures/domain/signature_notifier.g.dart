@@ -58,7 +58,7 @@ final class SignatureNotifierProvider
   }
 }
 
-String _$signatureNotifierHash() => r'03ee7c94755d82761b204b08c49ecd28f870af35';
+String _$signatureNotifierHash() => r'a07044abd565d3a962492259de4c5403625713e9';
 
 final class SignatureNotifierFamily extends $Family
     with
@@ -78,8 +78,8 @@ final class SignatureNotifierFamily extends $Family
         isAutoDispose: true,
       );
 
-  SignatureNotifierProvider call(String contractId) =>
-      SignatureNotifierProvider._(argument: contractId, from: this);
+  SignatureNotifierProvider call(String shareToken) =>
+      SignatureNotifierProvider._(argument: shareToken, from: this);
 
   @override
   String toString() => r'signatureProvider';
@@ -87,9 +87,9 @@ final class SignatureNotifierFamily extends $Family
 
 abstract class _$SignatureNotifier extends $Notifier<SignatureState> {
   late final _$args = ref.$arg as String;
-  String get contractId => _$args;
+  String get shareToken => _$args;
 
-  SignatureState build(String contractId);
+  SignatureState build(String shareToken);
   @$mustCallSuper
   @override
   void runBuild() {

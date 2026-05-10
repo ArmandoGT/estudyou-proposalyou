@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/active_provider_context.dart';
 import '../domain/contract_notifier.dart';
 import '../domain/contract_state.dart';
 
@@ -96,12 +97,24 @@ class ContractListScreen extends ConsumerWidget {
           }),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ref.read(contractWizardProvider.notifier).startWizard();
-          context.push('/contracts/new/step1');
+      floatingActionButton: FutureBuilder<bool>(
+        future: ref.read(isAllProvidersScopeProvider.future),
+        builder: (context, snapshot) {
+          final isGlobalScope = snapshot.data ?? false;
+          return FloatingActionButton(
+            onPressed: () {
+              if (isGlobalScope) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Selecione uma empresa específica para criar este item.')),
+                );
+                return;
+              }
+              ref.read(contractWizardProvider.notifier).startWizard();
+              context.push('/contracts/new/step1');
+            },
+            child: const Icon(Icons.add),
+          );
         },
-        child: const Icon(Icons.add),
       ),
     );
   }

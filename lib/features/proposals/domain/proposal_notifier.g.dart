@@ -42,9 +42,63 @@ final class ProposalListNotifierProvider
 }
 
 String _$proposalListNotifierHash() =>
-    r'6b11084647cc97b2208fe11bfc893373ba949f9f';
+    r'4267e5bab357d996b0b20a73bd68219ab1d9824b';
 
 abstract class _$ProposalListNotifier extends $Notifier<ProposalListState> {
+  ProposalListState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<ProposalListState, ProposalListState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ProposalListState, ProposalListState>,
+              ProposalListState,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(ArchivedProposalListNotifier)
+final archivedProposalListProvider = ArchivedProposalListNotifierProvider._();
+
+final class ArchivedProposalListNotifierProvider
+    extends $NotifierProvider<ArchivedProposalListNotifier, ProposalListState> {
+  ArchivedProposalListNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'archivedProposalListProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$archivedProposalListNotifierHash();
+
+  @$internal
+  @override
+  ArchivedProposalListNotifier create() => ArchivedProposalListNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ProposalListState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ProposalListState>(value),
+    );
+  }
+}
+
+String _$archivedProposalListNotifierHash() =>
+    r'c1823d6951ee80c716894ae3c0e1f1a0f7dc02f9';
+
+abstract class _$ArchivedProposalListNotifier
+    extends $Notifier<ProposalListState> {
   ProposalListState build();
   @$mustCallSuper
   @override
@@ -194,7 +248,7 @@ final class ProposalWizardNotifierProvider
 }
 
 String _$proposalWizardNotifierHash() =>
-    r'b3ace450e7f86f4716dbbd8f5d989c4c8b28f2e1';
+    r'3062b5aadb24da347202a701d8b2c49a0252b24d';
 
 abstract class _$ProposalWizardNotifier extends $Notifier<ProposalWizardState> {
   ProposalWizardState build();

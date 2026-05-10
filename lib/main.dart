@@ -29,6 +29,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/router/app_router.dart';
 import 'shared/theme/app_theme.dart';
+import 'shared/theme/theme_mode_controller.dart';
 
 /// Chaves de configuração injetadas em tempo de compilação via
 /// `flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...`
@@ -78,6 +79,7 @@ class ProposalYouApp extends ConsumerWidget {
     // autenticação (authStateProvider) causa rebuild do redirect,
     // redirecionando o usuário para /login ou /home conforme necessário.
     final router = ref.watch(appRouterProvider);
+    final themeMode = ref.watch(themeModeControllerProvider);
 
     return MaterialApp.router(
       // Configuração do GoRouter (rotas, guards, deep links)
@@ -94,7 +96,7 @@ class ProposalYouApp extends ConsumerWidget {
 
       // Modo de tema: segue a preferência do sistema operacional
       // ⚠️ DECISÃO PENDENTE: permitir override manual via settings (Fase 2)
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
 
       // Desativa o banner "DEBUG" no canto superior direito
       debugShowCheckedModeBanner: false,

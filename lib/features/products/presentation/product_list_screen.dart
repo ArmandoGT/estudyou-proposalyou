@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/active_provider_context.dart';
 import '../domain/product_notifier.dart';
 import '../domain/product_state.dart';
 
@@ -84,12 +85,41 @@ class ProductListScreen extends ConsumerWidget {
                             : theme.colorScheme.onSecondaryContainer,
                       ),
                     ),
-                    title: Text(p.nome),
-                    subtitle: Text('${isProduct ? "Produto" : "Serviço"}${p.unidade != null ? ' • ${p.unidade}' : ''}'),
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            p.nome,
+                            style: p.ativo
+                                ? null
+                                : theme.textTheme.titleMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                          ),
+                        ),
+                        if (!p.ativo)
+                          Chip(
+                            label: const Text('Inativo'),
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            labelStyle: theme.textTheme.labelSmall,
+                          ),
+                      ],
+                    ),
+                    subtitle: Text(
+                      '${isProduct ? "Produto" : "Serviço"}${p.unidade != null ? ' • ${p.unidade}' : ''}${p.descricao != null && p.descricao!.trim().isNotEmpty ? ' • ${p.descricao!.trim()}' : ''}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(_brlFormat.format(p.preco), style: theme.textTheme.titleMedium),
+                        Text(
+                          _brlFormat.format(p.preco),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: p.ativo ? null : theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                         const Icon(Icons.chevron_right),
                       ],
                     ),
@@ -101,9 +131,23 @@ class ProductListScreen extends ConsumerWidget {
           }),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/products/new'),
-        child: const Icon(Icons.add),
+      floatingActionButton: FutureBuilder<bool>(
+        future: ref.read(isAllProvidersScopeProvider.future),
+        builder: (context, snapshot) {
+          final isGlobalScope = snapshot.data ?? false;
+          return FloatingActionButton(
+            onPressed: () {
+              if (isGlobalScope) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Selecione uma empresa específica para criar este item.')),
+                );
+                return;
+              }
+              context.push('/products/new');
+            },
+            child: const Icon(Icons.add),
+          );
+        },
       ),
     );
   }

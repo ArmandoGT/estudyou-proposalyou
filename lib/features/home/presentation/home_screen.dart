@@ -63,7 +63,6 @@ class _DashboardContent extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Cards de métricas
         Row(children: [
           Expanded(child: _MetricCard(
             icon: Icons.article_outlined, label: 'Pendentes',

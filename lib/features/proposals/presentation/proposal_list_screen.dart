@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/active_provider_context.dart';
+import '../../../data/dtos/proposal_dto.dart';
 import '../domain/proposal_notifier.dart';
 import '../domain/proposal_state.dart';
 
@@ -12,15 +14,29 @@ final _brlFormat = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 final _dateFormat = DateFormat('dd/MM/yyyy');
 
 class ProposalListScreen extends ConsumerWidget {
-  const ProposalListScreen({super.key});
+  final bool archivedOnly;
+
+  const ProposalListScreen({super.key, this.archivedOnly = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final state = ref.watch(proposalListProvider);
+    final state = archivedOnly
+        ? ref.watch(archivedProposalListProvider)
+        : ref.watch(proposalListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Propostas')),
+      appBar: AppBar(
+        title: Text(archivedOnly ? 'Propostas arquivadas' : 'Propostas'),
+        actions: [
+          if (!archivedOnly)
+            IconButton(
+              tooltip: 'Arquivadas',
+              onPressed: () => context.push('/proposals/archived'),
+              icon: const Icon(Icons.archive_outlined),
+            ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -28,7 +44,9 @@ class ProposalListScreen extends ConsumerWidget {
             child: SearchBar(
               hintText: 'Buscar proposta...',
               leading: const Icon(Icons.search),
-              onChanged: (q) => ref.read(proposalListProvider.notifier).search(q),
+              onChanged: (q) => archivedOnly
+                  ? ref.read(archivedProposalListProvider.notifier).search(q)
+                  : ref.read(proposalListProvider.notifier).search(q),
             ),
           ),
           SingleChildScrollView(
@@ -38,25 +56,41 @@ class ProposalListScreen extends ConsumerWidget {
               _FilterChip(
                 label: 'Todas',
                 selected: state is ProposalListLoaded && state.activeStatusFilter == null,
-                onSelected: () => ref.read(proposalListProvider.notifier).filterByStatus(null),
+                onSelected: () => archivedOnly
+                    ? ref.read(archivedProposalListProvider.notifier).filterByStatus(null)
+                    : ref.read(proposalListProvider.notifier).filterByStatus(null),
               ),
               const SizedBox(width: 8),
               _FilterChip(
                 label: 'Rascunho',
                 selected: state is ProposalListLoaded && state.activeStatusFilter == 'rascunho',
-                onSelected: () => ref.read(proposalListProvider.notifier).filterByStatus('rascunho'),
+                onSelected: () => archivedOnly
+                    ? ref.read(archivedProposalListProvider.notifier).filterByStatus('rascunho')
+                    : ref.read(proposalListProvider.notifier).filterByStatus('rascunho'),
               ),
               const SizedBox(width: 8),
               _FilterChip(
                 label: 'Enviadas',
                 selected: state is ProposalListLoaded && state.activeStatusFilter == 'enviada',
-                onSelected: () => ref.read(proposalListProvider.notifier).filterByStatus('enviada'),
+                onSelected: () => archivedOnly
+                    ? ref.read(archivedProposalListProvider.notifier).filterByStatus('enviada')
+                    : ref.read(proposalListProvider.notifier).filterByStatus('enviada'),
               ),
               const SizedBox(width: 8),
               _FilterChip(
                 label: 'Aprovadas',
                 selected: state is ProposalListLoaded && state.activeStatusFilter == 'aprovada',
-                onSelected: () => ref.read(proposalListProvider.notifier).filterByStatus('aprovada'),
+                onSelected: () => archivedOnly
+                    ? ref.read(archivedProposalListProvider.notifier).filterByStatus('aprovada')
+                    : ref.read(proposalListProvider.notifier).filterByStatus('aprovada'),
+              ),
+              const SizedBox(width: 8),
+              _FilterChip(
+                label: 'Recusadas',
+                selected: state is ProposalListLoaded && state.activeStatusFilter == 'recusada',
+                onSelected: () => archivedOnly
+                    ? ref.read(archivedProposalListProvider.notifier).filterByStatus('recusada')
+                    : ref.read(proposalListProvider.notifier).filterByStatus('recusada'),
               ),
             ]),
           ),
@@ -70,11 +104,13 @@ class ProposalListScreen extends ConsumerWidget {
                 children: [
                   Icon(Icons.article_outlined, size: 64, color: theme.colorScheme.outline),
                   const SizedBox(height: 16),
-                  Text('Nenhuma proposta encontrada', style: theme.textTheme.bodyLarge),
+                  Text(archivedOnly ? 'Nenhuma proposta arquivada' : 'Nenhuma proposta encontrada', style: theme.textTheme.bodyLarge),
                 ],
               )),
             ProposalListLoaded(:final proposals) => RefreshIndicator(
-              onRefresh: () => ref.read(proposalListProvider.notifier).refresh(),
+              onRefresh: () => archivedOnly
+                  ? ref.read(archivedProposalListProvider.notifier).refresh()
+                  : ref.read(proposalListProvider.notifier).refresh(),
               child: ListView.builder(
                 itemCount: proposals.length,
                 itemBuilder: (ctx, i) {
@@ -86,16 +122,26 @@ class ProposalListScreen extends ConsumerWidget {
                     ),
                     title: Text('Proposta de ${p.clienteNome ?? 'Desconhecido'}'),
                     subtitle: Text('ID: ${p.id?.substring(0,8) ?? 'Novo'} • ${_dateFormat.format(p.updatedAt)}'),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(_brlFormat.format(p.total), style: theme.textTheme.titleSmall),
-                        const SizedBox(height: 4),
-                        _StatusBadge(status: p.status ?? 'rascunho'),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) => _handleProposalAction(context, ref, p, value),
+                      itemBuilder: (context) => [
+                        if (!archivedOnly)
+                          const PopupMenuItem(value: 'archive', child: Text('Arquivar')),
+                        if (archivedOnly)
+                          const PopupMenuItem(value: 'restore', child: Text('Restaurar')),
+                        const PopupMenuItem(value: 'delete', child: Text('Excluir permanentemente')),
                       ],
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(_brlFormat.format(p.total), style: theme.textTheme.titleSmall),
+                          const SizedBox(height: 4),
+                          _StatusBadge(status: p.status ?? 'rascunho'),
+                        ],
+                      ),
                     ),
-                    onTap: () => context.push('/proposals/${p.id}'),
+                    onTap: archivedOnly ? null : () => context.push('/proposals/${p.id}'),
                   );
                 },
               ),
@@ -103,14 +149,91 @@ class ProposalListScreen extends ConsumerWidget {
           }),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ref.read(proposalWizardProvider.notifier).startWizard();
-          context.push('/proposals/new/step1');
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: archivedOnly
+          ? null
+          : FutureBuilder<bool>(
+              future: ref.read(isAllProvidersScopeProvider.future),
+              builder: (context, snapshot) {
+                final isGlobalScope = snapshot.data ?? false;
+                return FloatingActionButton(
+                  onPressed: () {
+                    if (isGlobalScope) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecione uma empresa específica para criar este item.')),
+                      );
+                      return;
+                    }
+                    ref.read(proposalWizardProvider.notifier).startWizard();
+                    context.push('/proposals/new/step1');
+                  },
+                  child: const Icon(Icons.add),
+                );
+              },
+            ),
     );
+  }
+
+  Future<void> _handleProposalAction(BuildContext context, WidgetRef ref, ProposalDto proposal, String action) async {
+    if (proposal.id == null) return;
+
+    if (action == 'archive') {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Arquivar proposta?'),
+          content: const Text('A proposta sairá da lista principal e ficará disponível em Propostas arquivadas.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+            FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Arquivar')),
+          ],
+        ),
+      );
+      if (confirm == true) {
+        await ref.read(proposalListProvider.notifier).archive(proposal.id!);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Proposta arquivada com sucesso.')),
+          );
+        }
+      }
+      return;
+    }
+
+    if (action == 'restore') {
+      await ref.read(archivedProposalListProvider.notifier).restore(proposal.id!);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Proposta restaurada com sucesso.')),
+        );
+      }
+      return;
+    }
+
+    if (action == 'delete') {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Excluir proposta permanentemente?'),
+          content: const Text('Essa ação não pode ser desfeita.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+            FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Excluir')),
+          ],
+        ),
+      );
+      if (confirm == true) {
+        if (archivedOnly) {
+          await ref.read(archivedProposalListProvider.notifier).deletePermanently(proposal.id!);
+        } else {
+          await ref.read(proposalListProvider.notifier).deletePermanently(proposal.id!);
+        }
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Proposta excluída permanentemente.')),
+          );
+        }
+      }
+    }
   }
 }
 

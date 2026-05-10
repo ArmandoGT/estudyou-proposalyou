@@ -45,7 +45,19 @@ class ProviderDto {
         updatedAt: DateTime.parse(json['updated_at'] as String),
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toInsertJson() => {
+        'empresa': empresa,
+        'razao_social': razaoSocial,
+        'cnpj': cnpj,
+        'logo_url': logoUrl,
+        'endereco': endereco,
+        'responsavel': responsavel,
+        'email': email,
+        'cor_marca': corMarca,
+        'assinatura_padrao': assinaturaPadrao,
+      };
+
+  Map<String, dynamic> toUpdateJson() => {
         'id': id,
         'empresa': empresa,
         'razao_social': razaoSocial,
@@ -57,6 +69,8 @@ class ProviderDto {
         'cor_marca': corMarca,
         'assinatura_padrao': assinaturaPadrao,
       };
+
+  Map<String, dynamic> toJson() => toUpdateJson();
 
   ProviderDto copyWith({
     String? id,

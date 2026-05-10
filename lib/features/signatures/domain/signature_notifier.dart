@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/services/pdf_service.dart';
 import '../../../data/repositories/contract_repository.dart';
 import '../../../data/repositories/signature_repository.dart';
 import '../../../data/dtos/signature_dto.dart';
@@ -78,7 +79,7 @@ class SignatureNotifier extends _$SignatureNotifier {
       final signatureBase64 = base64Encode(signatureImageBytes);
       final resolvedIp = ip?.trim().isNotEmpty == true ? ip!.trim() : await _resolveIpAddress();
       final geolocation = await _resolveGeolocation();
-      final documentHash = _generateDocumentHash(
+      _generateDocumentHash(
         contractText: currentState.contract.textoFinal ?? '',
         signatarioNome: signatarioNome,
         signatureBase64: signatureBase64,
@@ -101,23 +102,47 @@ class SignatureNotifier extends _$SignatureNotifier {
       );
 
       await sigRepo.signContract(dto: sigDto);
-      await contractRepo.updateStatus(currentState.contract.id, 'assinado');
 
-      final certificateUrl = 'https://app.estudyou.com.br/contracts/${currentState.contract.id}/certificate';
+      final signatures = await sigRepo.getByContractId(currentState.contract.id);
+      final totalSignatures = signatures.length;
+      final allSigned = totalSignatures >= currentState.contract.totalSignatarios;
+
+      if (!allSigned) {
+        final updatedContract = currentState.contract.copyWith(
+          assinaturasRealizadas: totalSignatures,
+          status: 'aguardando_assinatura',
+        );
+        state = SignatureSuccess(updatedContract, 'Assinatura registrada com sucesso.');
+        return;
+      }
+
+      final pdfService = ref.read(pdfServiceProvider);
+      final finalContract = currentState.contract.copyWith(
+        status: 'assinado',
+        assinaturasRealizadas: totalSignatures,
+      );
+      final pdfBytes = await pdfService.generateContractPdf(finalContract, signatures);
+      final pdfHash = pdfService.hashPdfBytes(pdfBytes);
+      final pdfUrl = await pdfService.uploadPdf(
+        bytes: pdfBytes,
+        providerId: finalContract.providerId,
+        fileName: 'final.pdf',
+        objectPath: '${finalContract.providerId}/contracts/${finalContract.id}/final.pdf',
+      );
 
       await contractRepo.updateFinalDocument(
         currentState.contract.id,
-        pdfUrl: certificateUrl,
-        hash: documentHash,
+        pdfUrl: pdfUrl,
+        hash: pdfHash,
+      );
+      await contractRepo.updateStatus(currentState.contract.id, 'assinado');
+
+      final updatedContract = finalContract.copyWith(
+        pdfUrl: pdfUrl,
+        hashDocumento: pdfHash,
       );
 
-      final updatedContract = currentState.contract.copyWith(
-        status: 'assinado',
-        hashDocumento: documentHash,
-        pdfUrl: certificateUrl,
-      );
-
-      state = SignatureSuccess(updatedContract, certificateUrl);
+      state = SignatureSuccess(updatedContract, pdfUrl);
     } on AppException catch (e) {
       state = SignatureError(e.toUserMessage());
     }

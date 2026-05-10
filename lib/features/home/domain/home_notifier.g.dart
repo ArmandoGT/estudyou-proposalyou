@@ -34,7 +34,7 @@ final class HomeDashboardNotifierProvider
 }
 
 String _$homeDashboardNotifierHash() =>
-    r'a8e7eb1fec4cbd5ab07c7c25ac1c236527edf969';
+    r'4b214feb692d376a55425d2f0434a1ac78c30679';
 
 abstract class _$HomeDashboardNotifier
     extends $AsyncNotifier<HomeDashboardState> {

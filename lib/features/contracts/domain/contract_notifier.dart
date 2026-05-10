@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/services/active_provider_context.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../data/dtos/contract_dto.dart';
 import '../../../data/dtos/proposal_dto.dart';
@@ -23,16 +24,32 @@ class ContractListNotifier extends _$ContractListNotifier {
 
   @override
   ContractListState build() {
+    ref.watch(providerScopeModeProvider);
     ref.onDispose(() => _debounce?.cancel());
     _loadContracts();
     return const ContractListLoading();
   }
 
-  Future<void> _loadContracts() async {
+  Future<void> _loadContracts({bool refreshRemote = false}) async {
     try {
       final repo = ref.read(contractRepositoryProvider);
-      final contracts = await repo.getAll();
-      state = ContractListLoaded(contracts: contracts);
+      final scope = await ref.read(providerScopeModeProvider.future);
+      final activeProviderId = scope == ProviderScopeMode.all
+          ? null
+          : await ref.read(activeProviderIdProvider.future);
+      final contracts = await repo.getAll(
+        providerId: activeProviderId,
+        refreshRemote: refreshRemote,
+      );
+      final currentState = state;
+      final filter = currentState is ContractListLoaded ? currentState.activeStatusFilter : null;
+      final query = currentState is ContractListLoaded ? currentState.searchQuery : '';
+      final filteredContracts = filter == null ? contracts : _applyFilter(contracts, filter);
+      state = ContractListLoaded(
+        contracts: filteredContracts,
+        activeStatusFilter: filter,
+        searchQuery: query,
+      );
     } on AppException catch (e) {
       state = ContractListError(e.toUserMessage());
     }
@@ -43,14 +60,18 @@ class ContractListNotifier extends _$ContractListNotifier {
     _debounce = Timer(const Duration(milliseconds: 300), () async {
       try {
         final repo = ref.read(contractRepositoryProvider);
+        final scope = await ref.read(providerScopeModeProvider.future);
+        final activeProviderId = scope == ProviderScopeMode.all
+            ? null
+            : await ref.read(activeProviderIdProvider.future);
         final currentState = state;
         final filter = currentState is ContractListLoaded ? currentState.activeStatusFilter : null;
 
         List<ContractDto> results;
         if (query.isEmpty) {
-          results = await repo.getAll();
+          results = await repo.getAll(providerId: activeProviderId);
         } else {
-          results = await repo.search(query);
+          results = await repo.search(query, providerId: activeProviderId);
         }
 
         if (filter != null) {
@@ -87,7 +108,7 @@ class ContractListNotifier extends _$ContractListNotifier {
     return list.where((c) => c.status == status).toList();
   }
 
-  Future<void> refresh() => _loadContracts();
+  Future<void> refresh() => _loadContracts(refreshRemote: true);
 }
 
 // ─────────────────────────────────────────────────────────────

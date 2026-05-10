@@ -3,8 +3,10 @@
 // Serviço de geração de PDF para propostas e contratos.
 // Utiliza o package `pdf` para geração no dispositivo.
 
+import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,6 +15,7 @@ import 'package:intl/intl.dart';
 
 import '../../data/dtos/contract_dto.dart';
 import '../../data/dtos/proposal_dto.dart';
+import '../../data/dtos/provider_dto.dart';
 import '../../data/dtos/signature_dto.dart';
 import '../../data/supabase/supabase_provider.dart';
 
@@ -27,22 +30,34 @@ class PdfService {
 
   const PdfService(this._client);
 
+  Future<ProviderDto?> getProviderById(String? providerId) async {
+    if (providerId == null || providerId.isEmpty) return null;
+    try {
+      return await _client.from('providers').select().eq('id', providerId).maybeSingle().then(
+            (data) => data == null ? null : ProviderDto.fromJson(data),
+          );
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Gera PDF de uma proposta comercial.
   Future<Uint8List> generateProposalPdf(ProposalDto proposal) async {
     final pdf = pw.Document();
+    final provider = await getProviderById(proposal.providerId);
+    final brandColor = _parsePdfColor(provider?.corMarca);
+    final logo = await _loadLogo(provider?.logoUrl);
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(40),
         build: (context) => [
-          // Cabeçalho
-          pw.Header(
-            level: 0,
-            child: pw.Text(
-              'PROPOSTA COMERCIAL',
-              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
-            ),
+          _buildBrandHeader(
+            title: 'PROPOSTA COMERCIAL',
+            provider: provider,
+            brandColor: brandColor,
+            logo: logo,
           ),
           pw.SizedBox(height: 8),
 
@@ -90,6 +105,14 @@ class PdfService {
             pw.Header(level: 1, child: pw.Text('Observações')),
             pw.Text(proposal.observacoes!),
           ],
+          if (provider?.assinaturaPadrao?.trim().isNotEmpty == true) ...[
+            pw.SizedBox(height: 24),
+            pw.Divider(color: brandColor),
+            pw.Text(
+              provider!.assinaturaPadrao!.trim(),
+              style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+            ),
+          ],
         ],
       ),
     );
@@ -103,18 +126,20 @@ class PdfService {
     List<SignatureDto> signatures,
   ) async {
     final pdf = pw.Document();
+    final provider = await getProviderById(contract.providerId);
+    final brandColor = _parsePdfColor(provider?.corMarca);
+    final logo = await _loadLogo(provider?.logoUrl);
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(40),
         build: (context) => [
-          pw.Header(
-            level: 0,
-            child: pw.Text(
-              'CONTRATO',
-              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
-            ),
+          _buildBrandHeader(
+            title: 'CONTRATO',
+            provider: provider,
+            brandColor: brandColor,
+            logo: logo,
           ),
           pw.SizedBox(height: 8),
 
@@ -135,14 +160,36 @@ class PdfService {
           ...signatures.map((sig) => pw.Container(
                 margin: const pw.EdgeInsets.only(bottom: 16),
                 padding: const pw.EdgeInsets.all(12),
-                decoration: pw.BoxDecoration(border: pw.Border.all()),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: brandColor),
+                  borderRadius: pw.BorderRadius.circular(8),
+                ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(sig.signatarioNome,
                         style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    if (sig.imagemBase64 != null && sig.imagemBase64!.isNotEmpty) ...[
+                      pw.SizedBox(height: 8),
+                      pw.Container(
+                        height: 60,
+                        width: 180,
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(color: PdfColors.grey400),
+                        ),
+                        child: pw.Padding(
+                          padding: const pw.EdgeInsets.all(6),
+                          child: pw.Image(
+                            pw.MemoryImage(base64Decode(sig.imagemBase64!)),
+                            fit: pw.BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ],
+                    pw.SizedBox(height: 8),
                     pw.Text('Data: ${_dateFormat.format(sig.signedAt)}'),
                     if (sig.ip != null) pw.Text('IP: ${sig.ip}'),
+                    if (sig.geolocalizacao != null) pw.Text('Geo: ${sig.geolocalizacao}'),
                   ],
                 ),
               )),
@@ -153,6 +200,14 @@ class PdfService {
             pw.Text('Hash SHA-256: ${contract.hashDocumento}',
                 style: pw.TextStyle(fontSize: 8, font: pw.Font.courier())),
           ],
+          if (provider?.assinaturaPadrao?.trim().isNotEmpty == true) ...[
+            pw.SizedBox(height: 24),
+            pw.Divider(color: brandColor),
+            pw.Text(
+              provider!.assinaturaPadrao!.trim(),
+              style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+            ),
+          ],
         ],
       ),
     );
@@ -161,19 +216,102 @@ class PdfService {
   }
 
   /// Upload do PDF para Supabase Storage (bucket `pdfs`).
-  /// Organiza por provider_id para isolamento via RLS.
   Future<String> uploadPdf({
     required Uint8List bytes,
     required String providerId,
     required String fileName,
+    String? objectPath,
   }) async {
-    final path = '$providerId/$fileName';
+    final path = objectPath ?? '$providerId/$fileName';
     await _client.storage.from('pdfs').uploadBinary(
           path,
           bytes,
           fileOptions: const FileOptions(contentType: 'application/pdf', upsert: true),
         );
     return _client.storage.from('pdfs').getPublicUrl(path);
+  }
+
+  String hashPdfBytes(Uint8List bytes) {
+    return sha256.convert(bytes).toString();
+  }
+
+  Future<pw.MemoryImage?> _loadLogo(String? logoUrl) async {
+    if (logoUrl == null || logoUrl.trim().isEmpty) return null;
+    try {
+      final uri = Uri.tryParse(logoUrl);
+      final segments = uri?.pathSegments ?? const <String>[];
+      final bucketIndex = segments.indexOf('provider-logos');
+      if (bucketIndex == -1 || bucketIndex + 1 >= segments.length) {
+        return null;
+      }
+      final objectPath = segments.sublist(bucketIndex + 1).join('/');
+      final bytes = await _client.storage.from('provider-logos').download(objectPath);
+      return pw.MemoryImage(bytes);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  pw.Widget _buildBrandHeader({
+    required String title,
+    required ProviderDto? provider,
+    required PdfColor brandColor,
+    required pw.MemoryImage? logo,
+  }) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            if (logo != null)
+              pw.Container(
+                width: 56,
+                height: 56,
+                margin: const pw.EdgeInsets.only(right: 12),
+                child: pw.Image(logo, fit: pw.BoxFit.contain),
+              ),
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    title,
+                    style: pw.TextStyle(
+                      fontSize: 20,
+                      fontWeight: pw.FontWeight.bold,
+                      color: brandColor,
+                    ),
+                  ),
+                  if (provider != null) ...[
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      provider.razaoSocial,
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text('CNPJ: ${provider.cnpj}'),
+                    if (provider.email?.trim().isNotEmpty == true)
+                      pw.Text(provider.email!.trim()),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        pw.SizedBox(height: 8),
+        pw.Container(height: 3, color: brandColor),
+        pw.SizedBox(height: 12),
+      ],
+    );
+  }
+
+  PdfColor _parsePdfColor(String? hex) {
+    final value = hex?.trim();
+    if (value == null || value.isEmpty) return PdfColors.orange;
+    final normalized = value.startsWith('#') ? value.substring(1) : value;
+    final parsed = int.tryParse(normalized, radix: 16);
+    if (parsed == null) return PdfColors.orange;
+    return PdfColor.fromInt(0xFF000000 | parsed);
   }
 
   /// Helper para linha de informação no PDF.

@@ -15,6 +15,7 @@ class ProposalDto {
   final int versao;
   final String? shareToken;
   final String? pdfUrl;
+  final DateTime? archivedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -36,6 +37,7 @@ class ProposalDto {
     this.versao = 1,
     this.shareToken,
     this.pdfUrl,
+    this.archivedAt,
     required this.createdAt,
     required this.updatedAt,
     this.clienteNome,
@@ -72,6 +74,7 @@ class ProposalDto {
       versao: json['versao'] as int? ?? 1,
       shareToken: json['share_token'] as String?,
       pdfUrl: json['pdf_url'] as String?,
+      archivedAt: json['archived_at'] != null ? DateTime.parse(json['archived_at'] as String) : null,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : DateTime.now(),
       updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : DateTime.now(),
       clienteNome: clientData?['nome'] as String?,
@@ -90,6 +93,7 @@ class ProposalDto {
       'desconto': desconto,
       'observacoes': observacoes,
       'versao': versao,
+      'archived_at': archivedAt?.toIso8601String(),
     };
     if (id != null && id!.trim().isNotEmpty) {
       map['id'] = id;
@@ -101,7 +105,7 @@ class ProposalDto {
     String? id, String? providerId, String? clientId, String? templateId,
     String? status, DateTime? validade, List<Map<String, dynamic>>? itensJson,
     double? total, double? desconto, String? observacoes, int? versao,
-    String? shareToken, String? pdfUrl, DateTime? createdAt, DateTime? updatedAt,
+    String? shareToken, String? pdfUrl, DateTime? archivedAt, DateTime? createdAt, DateTime? updatedAt,
     String? clienteNome, String? providerEmpresa,
   }) => ProposalDto(
         id: id ?? this.id, providerId: providerId ?? this.providerId,
@@ -110,7 +114,7 @@ class ProposalDto {
         itensJson: itensJson ?? this.itensJson, total: total ?? this.total,
         desconto: desconto ?? this.desconto, observacoes: observacoes ?? this.observacoes,
         versao: versao ?? this.versao, shareToken: shareToken ?? this.shareToken,
-        pdfUrl: pdfUrl ?? this.pdfUrl, createdAt: createdAt ?? this.createdAt,
+        pdfUrl: pdfUrl ?? this.pdfUrl, archivedAt: archivedAt ?? this.archivedAt, createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt, clienteNome: clienteNome ?? this.clienteNome,
         providerEmpresa: providerEmpresa ?? this.providerEmpresa,
       );

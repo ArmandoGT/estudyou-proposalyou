@@ -45,8 +45,12 @@ class _ProposalStep2ScreenState extends ConsumerState<ProposalStep2Screen> {
         'id': DateTime.now().millisecondsSinceEpoch.toString(),
         'product_id': product.id,
         'nome': product.nome,
+        'tipo': product.tipo,
+        'unidade': product.unidade,
+        'descricao': product.descricao,
         'quantidade': 1.0,
         'preco_unitario': product.preco,
+        'preco': product.preco,
       });
     });
   }
@@ -55,7 +59,10 @@ class _ProposalStep2ScreenState extends ConsumerState<ProposalStep2Screen> {
     setState(() {
       final item = Map<String, dynamic>.from(_items[index]);
       if (quantidade != null && quantidade > 0) item['quantidade'] = quantidade;
-      if (preco != null && preco >= 0) item['preco_unitario'] = preco;
+      if (preco != null && preco >= 0) {
+        item['preco_unitario'] = preco;
+        item['preco'] = preco;
+      }
       _items[index] = item;
     });
   }
@@ -136,6 +143,9 @@ class _ProposalStep2ScreenState extends ConsumerState<ProposalStep2Screen> {
                       final item = _items[index];
                       final quantidade = (item['quantidade'] as num).toDouble();
                       final preco = (item['preco_unitario'] as num).toDouble();
+                      final tipo = item['tipo'] as String?;
+                      final unidade = item['unidade'] as String?;
+                      final descricao = item['descricao'] as String?;
                       final qtyCtrl = TextEditingController(text: quantidade.toStringAsFixed(quantidade % 1 == 0 ? 0 : 2));
                       final priceCtrl = TextEditingController(text: preco.toStringAsFixed(2));
 
@@ -145,6 +155,34 @@ class _ProposalStep2ScreenState extends ConsumerState<ProposalStep2Screen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(item['nome'] as String, style: theme.textTheme.titleMedium),
+                            const SizedBox(height: 4),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                if (tipo != null)
+                                  Chip(
+                                    label: Text(tipo == 'produto' ? 'Produto' : 'Serviço'),
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                if (unidade != null && unidade.isNotEmpty)
+                                  Chip(
+                                    label: Text(unidade),
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                  ),
+                              ],
+                            ),
+                            if (descricao != null && descricao.trim().isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                descricao,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 8),
                             Row(
                               children: [

@@ -2,8 +2,8 @@
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/services/active_provider_context.dart';
 import '../../../core/services/auth_service.dart';
-import '../../../data/dtos/provider_dto.dart';
 import '../../../data/repositories/contract_repository.dart';
 import '../../../data/repositories/proposal_repository.dart';
 import 'home_state.dart';
@@ -19,23 +19,25 @@ class HomeDashboardNotifier extends _$HomeDashboardNotifier {
 
   Future<HomeDashboardState> _loadDashboard() async {
     try {
-      final authService = ref.read(authServiceProvider.notifier);
       final proposalRepo = ref.read(proposalRepositoryProvider);
       final contractRepo = ref.read(contractRepositoryProvider);
+      final scope = await ref.read(providerScopeModeProvider.future);
+      final activeProvider = scope == ProviderScopeMode.all
+          ? null
+          : await ref.read(activeProviderProvider.future);
+      final activeProviderId = scope == ProviderScopeMode.all ? null : activeProvider?.id;
 
       final results = await Future.wait([
-        authService.getCurrentProvider(),
-        proposalRepo.getCountByStatus(),
-        contractRepo.countAguardandoAssinatura(),
-        proposalRepo.getRecentItems(limit: 5),
-        contractRepo.getAll(limit: 5),
+        proposalRepo.getCountByStatus(providerId: activeProviderId),
+        contractRepo.countAguardandoAssinatura(providerId: activeProviderId),
+        proposalRepo.getRecentItems(limit: 5, providerId: activeProviderId),
+        contractRepo.getAll(limit: 5, providerId: activeProviderId),
       ]);
 
-      final activeProvider = results[0] as ProviderDto?;
-      final statusCounts = results[1] as Map<String, int>;
-      final contratosAguardando = results[2] as int;
-      final recentProposals = results[3] as List;
-      final recentContracts = results[4] as List;
+      final statusCounts = results[0] as Map<String, int>;
+      final contratosAguardando = results[1] as int;
+      final recentProposals = results[2] as List;
+      final recentContracts = results[3] as List;
 
       // Mescla recentes e ordena por updated_at
       final recentes = [

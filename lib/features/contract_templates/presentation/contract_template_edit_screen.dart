@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/services/auth_service.dart';
+import '../../../core/services/active_provider_context.dart';
 import '../../../data/dtos/contract_template_dto.dart';
 import '../../../data/repositories/contract_template_repository.dart';
 
 final contractTemplateDetailProvider = FutureProvider.autoDispose.family((ref, String templateId) async {
   if (templateId == 'new') {
-    final providerId = await ref.read(authServiceProvider.notifier).getActiveProviderId() ?? '';
+    final providerId = await ref.read(activeProviderIdProvider.future) ?? '';
     return ContractTemplateDto(
       id: '',
       providerId: providerId,

@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
+import '../../../core/services/active_provider_context.dart';
 import '../../../data/repositories/contract_template_repository.dart';
 
-final contractTemplateListProvider = FutureProvider.autoDispose((ref) {
-  return ref.read(contractTemplateRepositoryProvider).getAll();
+final contractTemplateListProvider = FutureProvider.autoDispose((ref) async {
+  final activeProviderId = await ref.watch(activeProviderIdProvider.future);
+  return ref.read(contractTemplateRepositoryProvider).getAll(providerId: activeProviderId);
 });
 
 class ContractTemplateListScreen extends ConsumerWidget {
@@ -19,10 +21,24 @@ class ContractTemplateListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Modelos de Contrato')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/contract-templates/new'),
-        icon: const Icon(Icons.add),
-        label: const Text('Novo modelo'),
+      floatingActionButton: FutureBuilder<bool>(
+        future: ref.read(isAllProvidersScopeProvider.future),
+        builder: (context, snapshot) {
+          final isGlobalScope = snapshot.data ?? false;
+          return FloatingActionButton.extended(
+            onPressed: () {
+              if (isGlobalScope) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Selecione uma empresa específica para criar este item.')),
+                );
+                return;
+              }
+              context.push('/contract-templates/new');
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Novo modelo'),
+          );
+        },
       ),
       body: templatesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

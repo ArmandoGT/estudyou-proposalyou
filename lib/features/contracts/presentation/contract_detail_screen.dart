@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/active_provider_context.dart';
 import '../../../core/services/share_service.dart';
 import '../../../data/repositories/signature_repository.dart';
+import '../../../shared/widgets/tenant_brand_card.dart';
 import '../domain/contract_notifier.dart';
 import '../domain/contract_state.dart';
 
@@ -24,6 +26,7 @@ class ContractDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final state = ref.watch(contractDetailProvider(contractId));
+    final activeProviderAsync = ref.watch(activeProviderProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -49,6 +52,18 @@ class ContractDetailScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+              activeProviderAsync.when(
+                loading: () => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
+                data: (provider) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: TenantBrandCard(
+                    provider: provider,
+                    title: 'Marca da empresa',
+                    subtitle: contract.providerId,
+                  ),
+                ),
+              ),
               // Header
               Text('Contrato de ${contract.clienteNome ?? 'Desconhecido'}', style: theme.textTheme.headlineSmall),
               const SizedBox(height: 8),
@@ -156,6 +171,24 @@ class ContractDetailScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
+                      if (contract.pdfUrl?.isNotEmpty == true) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('PDF Final:'),
+                            TextButton.icon(
+                              icon: const Icon(Icons.picture_as_pdf_outlined, size: 16),
+                              label: const Text('Copiar Link'),
+                              onPressed: () async {
+                                await ref.read(shareServiceProvider).copyLinkToClipboard(contract.pdfUrl!);
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link do PDF copiado!')));
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -183,6 +216,7 @@ class ContractDetailScreen extends ConsumerWidget {
                   onPressed: () async {
                     await ref.read(contractDetailProvider(contractId).notifier).sendForSignature();
                     ref.invalidate(_contractSignaturesProvider(contract.id));
+                    ref.invalidate(contractDetailProvider(contractId));
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Contrato enviado para assinatura.')),
@@ -198,6 +232,18 @@ class ContractDetailScreen extends ConsumerWidget {
                   icon: const Icon(Icons.verified_outlined),
                   label: const Text('Ver certificado'),
                 ),
+                if (contract.pdfUrl?.isNotEmpty == true) ...[
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      await ref.read(shareServiceProvider).copyLinkToClipboard(contract.pdfUrl!);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link do PDF copiado!')));
+                    },
+                    icon: const Icon(Icons.picture_as_pdf_outlined),
+                    label: const Text('Copiar link do PDF final'),
+                  ),
+                ],
               ],
             ],
           ),
