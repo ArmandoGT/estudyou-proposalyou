@@ -111,6 +111,21 @@ class ContractDetailNotifier extends _$ContractDetailNotifier {
       state = ContractDetailError(e.toUserMessage());
     }
   }
+
+  Future<void> refresh() => _load(contractId);
+
+  Future<void> sendForSignature() async {
+    final currentState = state;
+    if (currentState is! ContractDetailLoaded) return;
+
+    try {
+      final repo = ref.read(contractRepositoryProvider);
+      await repo.updateStatus(currentState.contract.id, 'aguardando_assinatura');
+      await _load(currentState.contract.id);
+    } on AppException catch (e) {
+      state = ContractDetailError(e.toUserMessage());
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -145,9 +160,26 @@ class ContractWizardNotifier extends _$ContractWizardNotifier {
     final newDraft = currentDraft.copyWith(
       proposalId: proposal.id,
       clientId: proposal.clientId,
-      textoFinal: '<p>Contrato referente à proposta, aprovada em...</p>',
+      providerId: proposal.providerId ?? currentDraft.providerId,
+      textoFinal: '<p>Contrato referente à proposta aprovada.</p>',
     );
     state = ContractWizardStep1(newDraft, selectedProposal: proposal);
+  }
+
+  void startFromProposal(ProposalDto proposal) {
+    final draft = ContractDto(
+      id: '',
+      providerId: proposal.providerId ?? '',
+      clientId: proposal.clientId ?? '',
+      proposalId: proposal.id,
+      textoFinal: '<p>Contrato referente à proposta aprovada.</p>',
+      status: 'minuta',
+      linkAssinatura: '',
+      hashDocumento: '',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    state = ContractWizardStep2(draft, selectedProposal: proposal);
   }
 
   void goToStep(int step, ContractDto draft, {ProposalDto? proposal}) {

@@ -1,9 +1,13 @@
 // lib/features/providers/domain/provider_notifier.dart
 
+import 'dart:typed_data';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/logo_storage_service.dart';
+import '../../home/domain/home_notifier.dart';
 import '../../../data/dtos/provider_dto.dart';
 import '../../../data/repositories/provider_repository.dart';
 
@@ -40,16 +44,40 @@ class ProviderEditNotifier extends _$ProviderEditNotifier {
     });
   }
 
-  Future<void> uploadLogo(String providerId, List<int> imageBytes) async {
+  Future<ProviderDto> uploadLogo({
+    required String providerId,
+    required Uint8List imageBytes,
+    required String fileName,
+    required String contentType,
+  }) async {
+    final previous = state.value;
+
     try {
-      // ⚠️ DECISÃO PENDENTE: compressão de imagem depende de package image
-      // Por ora, upload direto para o bucket logos
-      final client = ref.read(providerRepositoryProvider);
-      final path = '$providerId/logo.jpg';
-      // Upload via storage diretamente
-      await client.updateLogoUrl(providerId, path);
-      ref.invalidateSelf();
-    } on AppException catch (_) {
+      final logoStorage = ref.read(logoStorageServiceProvider);
+      final repo = ref.read(providerRepositoryProvider);
+      final publicUrl = await logoStorage.uploadLogo(
+        bytes: imageBytes,
+        providerId: providerId,
+        fileName: fileName,
+        contentType: contentType,
+      );
+
+      await repo.updateLogoUrl(providerId, publicUrl);
+      final updated = await repo.getById(providerId);
+      ref.invalidate(homeDashboardProvider);
+      state = AsyncData(updated);
+      return updated;
+    } on AppException {
+      if (previous != null) {
+        state = AsyncData(previous);
+      }
+      rethrow;
+    } catch (e, st) {
+      if (previous != null) {
+        state = AsyncData(previous);
+      } else {
+        state = AsyncError(e, st);
+      }
       rethrow;
     }
   }

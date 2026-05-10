@@ -43,6 +43,22 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(),
           ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('Modelos de Proposta'),
+            subtitle: const Text('Criar e editar templates comerciais'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/proposal-templates'),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.article_outlined),
+            title: const Text('Modelos de Contrato'),
+            subtitle: const Text('Criar e editar templates jurídicos'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/contract-templates'),
+          ),
+          const Divider(),
+          ListTile(
             leading: const Icon(Icons.fingerprint),
             title: const Text('Segurança'),
             subtitle: const Text('Biometria e senhas'),

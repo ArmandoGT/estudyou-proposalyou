@@ -2,13 +2,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/services/share_service.dart';
+import '../../../data/repositories/signature_repository.dart';
 import '../domain/contract_notifier.dart';
 import '../domain/contract_state.dart';
 
 final _date = DateFormat('dd/MM/yyyy HH:mm');
+
+final _contractSignaturesProvider = FutureProvider.autoDispose.family((ref, String contractId) {
+  return ref.read(signatureRepositoryProvider).getByContractId(contractId);
+});
 
 class ContractDetailScreen extends ConsumerWidget {
   final String contractId;
@@ -26,9 +32,8 @@ class ContractDetailScreen extends ConsumerWidget {
           if (state is ContractDetailLoaded)
             IconButton(
               icon: const Icon(Icons.share),
-              onPressed: () {
-                // ⚠️ DECISÃO PENDENTE: integração com ShareService/PDF
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Compartilhamento em breve.')));
+              onPressed: () async {
+                await ref.read(shareServiceProvider).shareContract(state.contract);
               },
             ),
         ],
@@ -36,11 +41,14 @@ class ContractDetailScreen extends ConsumerWidget {
       body: switch (state) {
         ContractDetailLoading() => const Center(child: CircularProgressIndicator()),
         ContractDetailError(:final message) => Center(child: Text(message)),
-        ContractDetailLoaded(:final contract) => SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+        ContractDetailLoaded(:final contract) => Builder(
+          builder: (context) {
+            final signaturesAsync = ref.watch(_contractSignaturesProvider(contract.id));
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
               // Header
               Text('Contrato de ${contract.clienteNome ?? 'Desconhecido'}', style: theme.textTheme.headlineSmall),
               const SizedBox(height: 8),
@@ -68,14 +76,59 @@ class ContractDetailScreen extends ConsumerWidget {
                 ),
               ],
 
-              // Info Adicional
-              Text('Informações de Assinatura', style: theme.textTheme.titleMedium),
+              Text('Assinaturas', style: theme.textTheme.titleMedium),
               Card(
                 margin: const EdgeInsets.only(top: 8, bottom: 24),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Progresso:'),
+                          Text(
+                            contract.progressoAssinaturas,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      signaturesAsync.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (_, _) => Text(
+                          'Não foi possível carregar os signatários.',
+                          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
+                        ),
+                        data: (signatures) {
+                          if (signatures.isEmpty) {
+                            return Text(
+                              'Nenhuma assinatura registrada até o momento.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            );
+                          }
+
+                          return Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: signatures
+                                .map(
+                                  (signature) => Chip(
+                                    avatar: const Icon(Icons.verified, size: 18, color: Colors.green),
+                                    label: Text(signature.signatarioNome),
+                                  ),
+                                )
+                                .toList(),
+                          );
+                        },
+                      ),
+                      const Divider(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -125,15 +178,31 @@ class ContractDetailScreen extends ConsumerWidget {
                 ),
               ),
               
-              // Botões de Ação
               if (contract.status == 'minuta')
                 FilledButton.icon(
-                  onPressed: () {},
+                  onPressed: () async {
+                    await ref.read(contractDetailProvider(contractId).notifier).sendForSignature();
+                    ref.invalidate(_contractSignaturesProvider(contract.id));
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Contrato enviado para assinatura.')),
+                    );
+                  },
                   icon: const Icon(Icons.send),
                   label: const Text('Enviar para Assinatura'),
                 ),
+              if (contract.status == 'assinado') ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => context.push('/contracts/${contract.id}/certificate'),
+                  icon: const Icon(Icons.verified_outlined),
+                  label: const Text('Ver certificado'),
+                ),
+              ],
             ],
           ),
+        );
+          },
         ),
       },
     );

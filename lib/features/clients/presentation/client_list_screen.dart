@@ -7,11 +7,16 @@ import 'package:go_router/go_router.dart';
 import '../domain/client_notifier.dart';
 import '../domain/client_state.dart';
 
-class ClientListScreen extends ConsumerWidget {
+class ClientListScreen extends ConsumerStatefulWidget {
   const ClientListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ClientListScreen> createState() => _ClientListScreenState();
+}
+
+class _ClientListScreenState extends ConsumerState<ClientListScreen> {
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = ref.watch(clientListProvider);
 
@@ -72,31 +77,43 @@ class ClientListScreen extends ConsumerWidget {
                 itemBuilder: (ctx, i) {
                   final c = clients[i];
                   return Dismissible(
-key: Key(c.id ?? 'cliente_sem_id_${c.hashCode}'),
+                    key: Key(c.id ?? 'cliente_sem_id_${c.hashCode}'),
                     background: Container(
                       color: theme.colorScheme.error,
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.only(right: 16),
                       child: const Icon(Icons.archive, color: Colors.white),
                     ),
-                    confirmDismiss: (_) async {
+                    secondaryBackground: Container(
+                      color: theme.colorScheme.primary,
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.only(left: 16),
+                      child: const Icon(Icons.edit, color: Colors.white),
+                    ),
+                    confirmDismiss: (direction) async {
+                      if (direction == DismissDirection.startToEnd) {
+                        context.push('/clients/${c.id}');
+                        return false;
+                      }
                       return await showDialog<bool>(
-                        context: ctx,
-                        builder: (c) => AlertDialog(
-                          title: const Text('Arquivar cliente?'),
-                          content: const Text('O cliente será arquivado e não aparecerá na lista.'),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancelar')),
-                            FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Arquivar')),
-                          ],
-                        ),
-                      );
+                            context: ctx,
+                            builder: (dialogContext) => AlertDialog(
+                              title: const Text('Arquivar cliente?'),
+                              content: const Text('O cliente será arquivado e não aparecerá na lista.'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+                                FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Arquivar')),
+                              ],
+                            ),
+                          ) ??
+                          false;
                     },
-onDismissed: (_) {
-  if (c.id != null) {
-    ref.read(clientListProvider.notifier).archive(c.id!); 
-  }
-},                    child: ListTile(
+                    onDismissed: (_) {
+                      if (c.id != null) {
+                        ref.read(clientListProvider.notifier).archive(c.id!);
+                      }
+                    },
+                    child: ListTile(
                       leading: CircleAvatar(
                         backgroundColor: c.isPessoaFisica
                             ? theme.colorScheme.primaryContainer

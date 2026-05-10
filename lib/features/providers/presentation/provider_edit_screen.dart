@@ -1,9 +1,13 @@
 // lib/features/providers/presentation/provider_edit_screen.dart
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../data/dtos/provider_dto.dart';
 import '../domain/provider_notifier.dart';
 
@@ -24,8 +28,12 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
   final _emailCtrl = TextEditingController();
   final _assinaturaCtrl = TextEditingController();
 
+  final _imagePicker = ImagePicker();
+
   String? _selectedColor;
   bool _initialized = false;
+  bool _isUploadingLogo = false;
+  Uint8List? _localLogoBytes;
 
   static const _brandColors = [
     '#1A73E8', '#E65100', '#2E7D32', '#6A1B9A',
@@ -69,20 +77,40 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
             child: Form(
               key: _formKey,
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                // Logo placeholder
-                Center(child: GestureDetector(
-                  onTap: () {
-                    // ⚠️ DECISÃO PENDENTE: image_picker integration
-                  },
-                  child: CircleAvatar(
-                    radius: 48,
-                    backgroundColor: theme.colorScheme.primaryContainer,
-                    backgroundImage: provider.logoUrl != null ? NetworkImage(provider.logoUrl!) : null,
-                    child: provider.logoUrl == null
-                        ? Icon(Icons.camera_alt, size: 32, color: theme.colorScheme.onPrimaryContainer)
-                        : null,
+                Center(
+                  child: GestureDetector(
+                    onTap: _isUploadingLogo ? null : () => _pickAndUploadLogo(provider),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 48,
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          backgroundImage: _buildLogoImage(provider),
+                          child: _buildLogoImage(provider) == null
+                              ? Icon(Icons.camera_alt, size: 32, color: theme.colorScheme.onPrimaryContainer)
+                              : null,
+                        ),
+                        if (_isUploadingLogo)
+                          Container(
+                            width: 96,
+                            height: 96,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.35),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(child: CircularProgressIndicator()),
+                          ),
+                      ],
+                    ),
                   ),
-                )),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  provider.empresa.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelLarge,
+                ),
                 const SizedBox(height: 24),
 
                 TextFormField(controller: _razaoCtrl, decoration: const InputDecoration(labelText: 'Razão Social')),
@@ -95,7 +123,12 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
                 const SizedBox(height: 12),
                 TextFormField(controller: _emailCtrl, decoration: const InputDecoration(labelText: 'E-mail')),
                 const SizedBox(height: 12),
-                TextFormField(controller: _assinaturaCtrl, decoration: const InputDecoration(labelText: 'Assinatura padrão')),
+                TextFormField(
+                  controller: _assinaturaCtrl,
+                  maxLines: 3,
+                  decoration: const InputDecoration(labelText: 'Assinatura padrão'),
+                  onChanged: (_) => setState(() {}),
+                ),
                 const SizedBox(height: 24),
 
                 // ColorPicker simples
@@ -126,17 +159,30 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
                     border: Border.all(color: Color(int.parse((_selectedColor ?? '#1A73E8').replaceFirst('#', '0xFF')))),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(children: [
-                    Icon(Icons.business, color: Color(int.parse((_selectedColor ?? '#1A73E8').replaceFirst('#', '0xFF')))),
-                    const SizedBox(width: 12),
-                    Expanded(child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_razaoCtrl.text, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        Text('CNPJ: ${_cnpjCtrl.text}', style: theme.textTheme.bodySmall),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Icon(Icons.business, color: Color(int.parse((_selectedColor ?? '#1A73E8').replaceFirst('#', '0xFF')))),
+                        const SizedBox(width: 12),
+                        Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_razaoCtrl.text, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            Text('CNPJ: ${_cnpjCtrl.text}', style: theme.textTheme.bodySmall),
+                          ],
+                        )),
+                      ]),
+                      if (_assinaturaCtrl.text.trim().isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        const Divider(),
+                        Text(
+                          _assinaturaCtrl.text.trim(),
+                          style: theme.textTheme.bodySmall,
+                        ),
                       ],
-                    )),
-                  ]),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -147,6 +193,61 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
         },
       ),
     );
+  }
+
+  ImageProvider<Object>? _buildLogoImage(ProviderDto provider) {
+    if (_localLogoBytes != null) {
+      return MemoryImage(_localLogoBytes!);
+    }
+    if (provider.logoUrl != null && provider.logoUrl!.trim().isNotEmpty) {
+      return NetworkImage(provider.logoUrl!);
+    }
+    return null;
+  }
+
+  Future<void> _pickAndUploadLogo(ProviderDto provider) async {
+    final file = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 85,
+    );
+    if (file == null || !mounted) return;
+
+    final bytes = await file.readAsBytes();
+    setState(() {
+      _isUploadingLogo = true;
+      _localLogoBytes = bytes;
+    });
+
+    try {
+      await ref.read(providerEditProvider(widget.providerId).notifier).uploadLogo(
+        providerId: provider.id,
+        imageBytes: bytes,
+        fileName: file.name,
+        contentType: file.mimeType ?? 'image/jpeg',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Logo atualizada com sucesso!')),
+      );
+    } on AppException catch (e) {
+      if (!mounted) return;
+      setState(() => _localLogoBytes = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toUserMessage())),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _localLogoBytes = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível enviar a logo.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingLogo = false);
+      }
+    }
   }
 
   void _save() {

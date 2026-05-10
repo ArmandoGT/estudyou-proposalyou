@@ -22,6 +22,9 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/clients/presentation/client_detail_screen.dart';
 import '../../features/clients/presentation/client_list_screen.dart';
+import '../../features/contract_templates/presentation/contract_template_edit_screen.dart';
+import '../../features/contract_templates/presentation/contract_template_list_screen.dart';
+import '../../features/contracts/presentation/contract_certificate_screen.dart';
 import '../../features/contracts/presentation/contract_detail_screen.dart';
 import '../../features/contracts/presentation/contract_list_screen.dart';
 import '../../features/contracts/presentation/contract_step1_screen.dart';
@@ -30,6 +33,8 @@ import '../../features/contracts/presentation/contract_step3_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/products/presentation/product_detail_screen.dart';
 import '../../features/products/presentation/product_list_screen.dart';
+import '../../features/proposal_templates/presentation/proposal_template_edit_screen.dart';
+import '../../features/proposal_templates/presentation/proposal_template_list_screen.dart';
 import '../../features/proposals/presentation/proposal_detail_screen.dart';
 import '../../features/proposals/presentation/proposal_list_screen.dart';
 import '../../features/proposals/presentation/proposal_public_screen.dart';
@@ -122,7 +127,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       
       GoRoute(path: '/providers', builder: (context, state) => const ProviderListScreen()),
       GoRoute(path: '/providers/:id/edit', builder: (context, state) => ProviderEditScreen(providerId: state.pathParameters['id']!)),
-      
+      GoRoute(path: '/proposal-templates', builder: (context, state) => const ProposalTemplateListScreen()),
+      GoRoute(path: '/proposal-templates/:id', builder: (context, state) => ProposalTemplateEditScreen(templateId: state.pathParameters['id']!)),
+      GoRoute(path: '/contract-templates', builder: (context, state) => const ContractTemplateListScreen()),
+      GoRoute(path: '/contract-templates/:id', builder: (context, state) => ContractTemplateEditScreen(templateId: state.pathParameters['id']!)),
+
       GoRoute(path: '/products', builder: (context, state) => const ProductListScreen()),
       GoRoute(path: '/products/:id', builder: (context, state) => ProductDetailScreen(productId: state.pathParameters['id']!)),
       
@@ -135,6 +144,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/contracts/new/step2', builder: (context, state) => const ContractStep2Screen()),
       GoRoute(path: '/contracts/new/step3', builder: (context, state) => const ContractStep3Screen()),
       GoRoute(path: '/contracts/:id', builder: (context, state) => ContractDetailScreen(contractId: state.pathParameters['id']!)),
+      GoRoute(path: '/contracts/:id/certificate', builder: (context, state) => ContractCertificateScreen(contractId: state.pathParameters['id']!)),
     ],
   );
 });

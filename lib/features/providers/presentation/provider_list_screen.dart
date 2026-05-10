@@ -28,7 +28,11 @@ class ProviderListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Prestadores')),
-      body: asyncProviders.when(
+      body: FutureBuilder<String?>(
+        future: ref.read(providerListProvider.notifier).getActiveProviderSlug(),
+        builder: (context, activeSnapshot) {
+          final activeSlug = activeSnapshot.data;
+          return asyncProviders.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Erro: $e')),
         data: (providers) => ListView.builder(
@@ -37,12 +41,13 @@ class ProviderListScreen extends ConsumerWidget {
           itemBuilder: (context, i) {
             final p = providers[i];
             final color = _providerColors[p.empresa] ?? theme.colorScheme.primary;
-            // ⚠️ DECISÃO PENDENTE: indicar empresa ativa requer comparação com AuthService
+            final isActive = p.empresa == activeSlug;
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
+              color: isActive ? color.withValues(alpha: 0.08) : null,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: color, width: 2),
+                side: BorderSide(color: color, width: isActive ? 3 : 2),
               ),
               child: ListTile(
                 contentPadding: const EdgeInsets.all(16),
@@ -50,7 +55,20 @@ class ProviderListScreen extends ConsumerWidget {
                   backgroundColor: color.withValues(alpha: 0.15),
                   child: Icon(_providerIcons[p.empresa] ?? Icons.business, color: color),
                 ),
-                title: Text(p.razaoSocial, style: theme.textTheme.titleMedium),
+                title: Row(
+                  children: [
+                    Expanded(child: Text(p.razaoSocial, style: theme.textTheme.titleMedium)),
+                    if (isActive)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: const Text('Ativa', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                  ],
+                ),
                 subtitle: Text('CNPJ: ${p.cnpj}\n${p.empresa.toUpperCase()}'),
                 isThreeLine: true,
                 trailing: const Icon(Icons.edit_outlined),
@@ -59,6 +77,8 @@ class ProviderListScreen extends ConsumerWidget {
             );
           },
         ),
+      );
+        },
       ),
     );
   }

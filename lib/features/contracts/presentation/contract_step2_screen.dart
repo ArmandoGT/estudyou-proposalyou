@@ -29,25 +29,11 @@ class _ContractStep2ScreenState extends ConsumerState<ContractStep2Screen> {
     final theme = Theme.of(context);
     final state = ref.watch(contractWizardProvider);
 
-    ref.listen(contractWizardProvider, (_, s) {
-      if (s is ContractWizardSuccess) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contrato salvo!')));
-        context.go('/contracts/${s.contract.id}');
-        ref.read(contractWizardProvider.notifier).reset();
-      } else if (s is ContractWizardError) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.message), backgroundColor: theme.colorScheme.error));
-      }
-    });
-
-    if (state is! ContractWizardStep2 && state is! ContractWizardSaving && state is! ContractWizardError) {
+    if (state is! ContractWizardStep2) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final draft = (state is ContractWizardStep2)
-        ? state.draft
-        : (state is ContractWizardError) ? state.draft : null;
-
-    if (draft == null) return const SizedBox();
+    final draft = state.draft;
 
     if (!_initialized) {
       _initialized = true;
@@ -84,9 +70,9 @@ class _ContractStep2ScreenState extends ConsumerState<ContractStep2Screen> {
           child: Row(children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: state is ContractWizardSaving ? null : () {
+                onPressed: () {
                   final newDraft = draft.copyWith(textoFinal: _htmlCtrl.text);
-                  ref.read(contractWizardProvider.notifier).goToStep(1, newDraft, proposal: (state as dynamic).selectedProposal);
+                  ref.read(contractWizardProvider.notifier).goToStep(1, newDraft, proposal: state.selectedProposal);
                   context.pop();
                 },
                 child: const Text('Voltar'),
@@ -96,14 +82,13 @@ class _ContractStep2ScreenState extends ConsumerState<ContractStep2Screen> {
             Expanded(
               flex: 2,
               child: FilledButton.icon(
-                onPressed: state is ContractWizardSaving ? null : () {
+                onPressed: () {
                   final newDraft = draft.copyWith(textoFinal: _htmlCtrl.text);
-                  ref.read(contractWizardProvider.notifier).save(newDraft, isNew: newDraft.id.isEmpty);
+                  ref.read(contractWizardProvider.notifier).goToStep(3, newDraft, proposal: state.selectedProposal);
+                  context.push('/contracts/new/step3');
                 },
-                icon: state is ContractWizardSaving 
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.save),
-                label: Text(state is ContractWizardSaving ? 'Salvando...' : 'Salvar Contrato'),
+                icon: const Icon(Icons.arrow_forward),
+                label: const Text('Próximo: Resumo'),
               ),
             ),
           ]),

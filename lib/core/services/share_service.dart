@@ -30,6 +30,10 @@ class ShareService {
   String contractSignLink(ContractDto contract) =>
       '$_baseUrl/s/${contract.shareToken}';
 
+  /// Gera o link do certificado do contrato autenticado.
+  String contractCertificateLink(String contractId) =>
+      '$_baseUrl/contracts/$contractId/certificate';
+
   /// Compartilha proposta via share nativo (WhatsApp, email, etc.)
   Future<void> shareProposal(ProposalDto proposal) async {
     final link = proposalLink(proposal);

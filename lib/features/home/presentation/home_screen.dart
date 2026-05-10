@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../data/dtos/provider_dto.dart';
 import '../domain/home_notifier.dart';
 import '../domain/home_state.dart';
 
@@ -22,19 +23,25 @@ class HomeDashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('ProposalYou'),
         actions: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: theme.colorScheme.primaryContainer,
-            child: Icon(Icons.person, size: 18, color: theme.colorScheme.onPrimaryContainer),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: _ActiveProviderAvatar(
+              provider: asyncState.whenOrNull(
+                data: (state) => switch (state) {
+                  HomeDashboardLoaded(:final activeProvider) => activeProvider,
+                  _ => null,
+                },
+              ),
+              fallbackColor: theme.colorScheme.surfaceContainerHighest,
+            ),
           ),
-          const SizedBox(width: 12),
         ],
       ),
       body: asyncState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const _DashboardSkeleton(),
         error: (e, _) => Center(child: Text('Erro: $e')),
         data: (state) => switch (state) {
-          HomeDashboardLoading() => const Center(child: CircularProgressIndicator()),
+          HomeDashboardLoading() => const _DashboardSkeleton(),
           HomeDashboardError(:final message) => Center(child: Text(message)),
           HomeDashboardLoaded() => RefreshIndicator(
               onRefresh: () => ref.read(homeDashboardProvider.notifier).refresh(),
@@ -176,6 +183,13 @@ class _DashboardContent extends StatelessWidget {
 
         // Lista Recentes
         Text('Recentes', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 4),
+        Text(
+          'Últimas propostas e contratos atualizados.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
         const SizedBox(height: 12),
         if (state.recentes.isEmpty)
           _EmptyState()
@@ -246,8 +260,19 @@ class _RecentItemCard extends StatelessWidget {
           ),
         ),
         title: Text(item.clienteNome),
-        subtitle: Text(
-          '${isProposal ? "Proposta" : "Contrato"} • ${_dateFormat.format(item.updatedAt)}',
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('${isProposal ? "Proposta" : "Contrato"} • ${_dateFormat.format(item.updatedAt)}'),
+            if (item.total != null)
+              Text(
+                NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(item.total),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+          ],
         ),
         trailing: Chip(
           label: Text(item.status, style: const TextStyle(fontSize: 11)),
@@ -261,6 +286,144 @@ class _RecentItemCard extends StatelessWidget {
             context.push('/contracts/${item.id}');
           }
         },
+      ),
+    );
+  }
+}
+
+class _ActiveProviderAvatar extends StatelessWidget {
+  final ProviderDto? provider;
+  final Color fallbackColor;
+
+  const _ActiveProviderAvatar({
+    required this.provider,
+    required this.fallbackColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final logoUrl = provider?.logoUrl;
+    final hasLogo = logoUrl != null && logoUrl.trim().isNotEmpty;
+
+    return CircleAvatar(
+      radius: 16,
+      backgroundColor: provider == null
+          ? fallbackColor
+          : theme.colorScheme.primaryContainer,
+      backgroundImage: hasLogo ? NetworkImage(logoUrl) : null,
+      child: !hasLogo
+          ? Icon(
+              provider == null ? Icons.hourglass_empty : Icons.business,
+              size: 18,
+              color: provider == null
+                  ? theme.colorScheme.onSurfaceVariant
+                  : theme.colorScheme.onPrimaryContainer,
+            )
+          : null,
+    );
+  }
+}
+
+class _DashboardSkeleton extends StatelessWidget {
+  const _DashboardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Row(
+          children: List.generate(
+            3,
+            (index) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: index < 2 ? 12 : 0),
+                child: _SkeletonBox(height: 108, color: theme.colorScheme.surfaceContainerHighest),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        _SkeletonBox(height: 20, width: 120, color: theme.colorScheme.surfaceContainerHighest),
+        const SizedBox(height: 12),
+        Row(
+          children: List.generate(
+            3,
+            (index) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: index < 2 ? 8 : 0),
+                child: _SkeletonBox(height: 88, color: theme.colorScheme.surfaceContainerHighest),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        _SkeletonBox(height: 20, width: 90, color: theme.colorScheme.surfaceContainerHighest),
+        const SizedBox(height: 12),
+        const _SkeletonRecentCard(),
+        const SizedBox(height: 8),
+        const _SkeletonRecentCard(),
+        const SizedBox(height: 8),
+        const _SkeletonRecentCard(),
+      ],
+    );
+  }
+}
+
+class _SkeletonRecentCard extends StatelessWidget {
+  const _SkeletonRecentCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SkeletonBox(height: 14, width: 140, color: theme.colorScheme.surfaceContainerHighest),
+                  const SizedBox(height: 8),
+                  _SkeletonBox(height: 12, width: 180, color: theme.colorScheme.surfaceContainerHighest),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            _SkeletonBox(height: 28, width: 72, color: theme.colorScheme.surfaceContainerHighest),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonBox extends StatelessWidget {
+  final double height;
+  final double? width;
+  final Color color;
+
+  const _SkeletonBox({required this.height, required this.color, this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
       ),
     );
   }

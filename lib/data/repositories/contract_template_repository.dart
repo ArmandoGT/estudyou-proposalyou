@@ -35,7 +35,11 @@ class ContractTemplateRepository {
 
   Future<ContractTemplateDto> create(ContractTemplateDto dto) async {
     try {
-      final data = await _table.insert(dto.toJson()).select().single();
+      final json = dto.toJson();
+      if ((json['id'] as String?)?.trim().isEmpty == true) {
+        json.remove('id');
+      }
+      final data = await _table.insert(json).select().single();
       return ContractTemplateDto.fromJson(data);
     } on PostgrestException catch (e) {
       throw e.toAppException();

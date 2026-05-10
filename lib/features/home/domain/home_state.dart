@@ -1,7 +1,8 @@
 // lib/features/home/domain/home_state.dart
 
-import '../../../data/dtos/proposal_dto.dart';
 import '../../../data/dtos/contract_dto.dart';
+import '../../../data/dtos/proposal_dto.dart';
+import '../../../data/dtos/provider_dto.dart';
 
 /// Estado do Dashboard Home.
 sealed class HomeDashboardState {
@@ -13,12 +14,14 @@ final class HomeDashboardLoading extends HomeDashboardState {
 }
 
 final class HomeDashboardLoaded extends HomeDashboardState {
+  final ProviderDto? activeProvider;
   final int propostasPendentes;
   final int propostasAprovadas;
   final int contratosAguardando;
   final List<RecentItem> recentes;
 
   const HomeDashboardLoaded({
+    required this.activeProvider,
     required this.propostasPendentes,
     required this.propostasAprovadas,
     required this.contratosAguardando,

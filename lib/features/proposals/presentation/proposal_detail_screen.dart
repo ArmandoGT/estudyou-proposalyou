@@ -2,9 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/services/share_service.dart';
+import '../../../data/repositories/proposal_repository.dart';
+import '../../contracts/domain/contract_notifier.dart';
 import '../domain/proposal_notifier.dart';
 import '../domain/proposal_state.dart';
 
@@ -27,9 +30,8 @@ class ProposalDetailScreen extends ConsumerWidget {
           if (state is ProposalDetailLoaded)
             IconButton(
               icon: const Icon(Icons.share),
-              onPressed: () {
-                // ⚠️ DECISÃO PENDENTE: integração com ShareService/PDF
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Compartilhamento em breve.')));
+              onPressed: () async {
+                await ref.read(shareServiceProvider).shareProposal(state.proposal);
               },
             ),
         ],
@@ -135,27 +137,45 @@ class ProposalDetailScreen extends ConsumerWidget {
               // Botões de Ação dependendo do status
               if (proposal.status == 'rascunho')
                 FilledButton.icon(
-                  onPressed: () {},
+                  onPressed: () async {
+                    await ref.read(proposalRepositoryProvider).updateStatus(proposal.id!, 'enviada');
+                    ref.invalidate(proposalDetailProvider(proposalId));
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Proposta marcada como enviada.')));
+                  },
                   icon: const Icon(Icons.send),
                   label: const Text('Marcar como Enviada'),
                 ),
               if (proposal.status == 'enviada')
                 Row(children: [
                   Expanded(child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await ref.read(proposalRepositoryProvider).updateStatus(proposal.id!, 'recusada');
+                      ref.invalidate(proposalDetailProvider(proposalId));
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Proposta recusada.')));
+                    },
                     style: OutlinedButton.styleFrom(foregroundColor: theme.colorScheme.error),
                     child: const Text('Recusar'),
                   )),
                   const SizedBox(width: 16),
                   Expanded(child: FilledButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await ref.read(proposalRepositoryProvider).updateStatus(proposal.id!, 'aprovada');
+                      ref.invalidate(proposalDetailProvider(proposalId));
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Proposta aprovada.')));
+                    },
                     style: FilledButton.styleFrom(backgroundColor: Colors.green),
                     child: const Text('Aprovar'),
                   )),
                 ]),
               if (proposal.status == 'aprovada')
                 FilledButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    ref.read(contractWizardProvider.notifier).startFromProposal(proposal);
+                    context.push('/contracts/new/step2');
+                  },
                   icon: const Icon(Icons.handshake),
                   label: const Text('Gerar Contrato'),
                 ),

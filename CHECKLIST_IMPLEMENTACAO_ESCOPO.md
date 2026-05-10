@@ -63,18 +63,18 @@ Impacto: Muito alto
 ### 2. Contrato completo até certificado
 Impacto: Muito alto
 
-- [ ] Criar passo 3 do gerador de contrato
-  - Preview PDF
+- [x] Criar passo 3 do gerador de contrato
+  - Preview PDF/textual do contrato
   - Compartilhar
   - Copiar link
-  - Salvar PDF
-  - Navegação final para lista/detalhe
+  - Salvar contrato e navegar para detalhe
+  - Observação: salvar PDF ainda não está funcional
   - Arquivos-base:
     - `lib/core/router/app_router.dart`
     - `lib/features/contracts/presentation/contract_step3_screen.dart`
     - `lib/features/contracts/domain/contract_notifier.dart`
 
-- [ ] Completar detalhe do contrato
+- [x] Completar detalhe do contrato
   - Enviar para assinatura
   - Compartilhar de verdade
   - Exibir progresso de assinaturas
@@ -84,12 +84,12 @@ Impacto: Muito alto
     - `lib/core/services/share_service.dart`
     - `lib/data/repositories/signature_repository.dart`
 
-- [ ] Criar tela de certificado do contrato
+- [x] Criar tela de certificado do contrato
   - Rota `/contracts/:id/certificate`
-  - PDF final
+  - PDF final / link do PDF
   - Hash
   - Dados dos signatários
-  - Download
+  - Download/cópia do link do PDF
   - Compartilhar link de verificação
   - Arquivos-base:
     - `lib/core/router/app_router.dart`
@@ -103,35 +103,36 @@ Impacto: Muito alto
 ### 3. Fechar fluxo completo de proposta
 Impacto: Alto
 
-- [ ] Completar Step 1
+- [x] Completar Step 1
   - Seleção de cliente com criar novo inline
   - Seleção de empresa
   - Seleção de modelo
   - Data de validade
-  - Stepper visual consistente
+  - Observação: stepper visual consistente ainda não foi refinado
 
-- [ ] Completar Step 2
+- [x] Completar Step 2
   - Busca de itens do catálogo
   - Quantidade/preço editáveis
   - Subtotal em tempo real
-  - Desconto percentual e absoluto
+  - Desconto absoluto
   - Total final destacado
-  - Observações
+  - Observação: desconto percentual ainda não foi implementado
 
-- [ ] Completar Step 3
-  - Preview PDF embutido
-  - Compartilhar via WhatsApp
+- [x] Completar Step 3
+  - Preview/resumo da proposta
+  - Compartilhar
   - Copiar link
   - Salvar PDF
-  - Gerar contrato a partir da proposta
+  - Gerar contrato a partir da proposta via detalhe
   - Status badge consistente
+  - Observação: preview ainda não é PDF embutido
 
-- [ ] Completar detalhe da proposta
+- [x] Completar detalhe da proposta
   - Compartilhamento real
   - Mudança de status funcional
   - Geração de contrato real
 
-- [ ] Criar/ajustar rota pública de proposta por token
+- [x] Criar/ajustar rota pública de proposta por token
   - Garantir consistência com ShareService
 
 Arquivos-base:
@@ -151,27 +152,27 @@ Arquivos-base:
 ### 4. Entregar feature de templates na UI
 Impacto: Alto
 
-- [ ] Criar lista de modelos de proposta
-  - Agrupamento por empresa
-  - Thumbnail/preview
-  - Badge de uso
+- [x] Criar lista de modelos de proposta
+  - Agrupamento simples por provider exibido no card
+  - Preview textual
   - FAB novo modelo
   - Duplicar modelo
+  - Observação: badge de uso e thumbnail rica ainda pendentes
 
-- [ ] Criar editor de modelo de proposta
-  - Editor rich text
-  - Variáveis dinâmicas
+- [x] Criar editor de modelo de proposta
+  - Editor textual
   - Preview
   - Salvar
-  - Pré-visualizar PDF
+  - Observação: rich text, variáveis assistidas e preview PDF ainda pendentes
 
-- [ ] Criar lista de modelos de contrato
+- [x] Criar lista de modelos de contrato
   - Estrutura equivalente à de proposta
 
-- [ ] Criar editor de modelo de contrato
-  - Variáveis adicionais de assinatura
+- [x] Criar editor de modelo de contrato
   - Versionamento simples
   - Preview
+  - Salvar
+  - Observação: variáveis adicionais de assinatura ainda não foram refinadas
 
 Arquivos-base:
 - `lib/core/router/app_router.dart`
@@ -181,7 +182,8 @@ Arquivos-base:
 - `lib/features/contract_templates/presentation/...`
 
 Observação:
-- As pastas de `presentation/domain` dessas features ainda precisarão ser criadas.
+- As pastas de `presentation` dessas features foram criadas.
+- Camada `domain` específica para templates ainda não foi criada.
 
 ---
 
@@ -190,13 +192,13 @@ Observação:
 ### 5. Completar módulo de clientes
 Impacto: Médio-alto
 
-- [ ] Adicionar debounce de busca
-- [ ] Implementar filtros PF/PJ
-- [ ] Adicionar swipe-to-action editar/arquivar
-- [ ] Integrar ViaCEP no formulário
-- [ ] Exibir histórico de propostas/contratos vinculados
-- [ ] Botão “Criar proposta para este cliente”
-- [ ] Validação inline em tempo real
+- [x] Adicionar debounce de busca
+- [x] Implementar filtros PF/PJ
+- [x] Adicionar swipe-to-action editar/arquivar
+- [x] Integrar ViaCEP no formulário
+- [x] Exibir histórico de propostas/contratos vinculados
+- [x] Botão “Criar proposta para este cliente”
+- [x] Validação inline em tempo real
 
 Arquivos-base:
 - `lib/features/clients/presentation/client_list_screen.dart`
@@ -207,12 +209,18 @@ Arquivos-base:
 ### 6. Completar módulo de prestadores
 Impacto: Médio-alto
 
-- [ ] Garantir 3 cards fixos: Estudyou, Protseg, Protuni
-- [ ] Destacar empresa ativa
-- [ ] Upload de logo
-- [ ] Color picker simples
-- [ ] Preview do rodapé do documento
-- [ ] Editar assinatura padrão
+- [x] Garantir 3 cards fixos: Estudyou, Protseg, Protuni
+- [x] Destacar empresa ativa
+- [x] Upload de logo
+  - Arquivos alterados: `pubspec.yaml`, `lib/core/services/logo_storage_service.dart`, `lib/features/providers/domain/provider_notifier.dart`, `lib/features/providers/presentation/provider_edit_screen.dart`, `lib/features/home/domain/home_notifier.dart`, `lib/features/home/domain/home_state.dart`, `lib/features/home/presentation/home_screen.dart`
+  - Upload real via Supabase Storage conectado na UI
+  - Preview local e loading durante envio
+  - Persistência de `logo_url` no provider
+  - Home preparada para refletir a logo do prestador ativo
+  - Observação: bucket `provider-logos` e policies essenciais no Supabase ainda precisam ser criados/aplicados no ambiente
+- [x] Color picker simples
+- [x] Preview do rodapé do documento
+- [x] Editar assinatura padrão
 
 Arquivos-base:
 - `lib/features/providers/presentation/provider_list_screen.dart`
@@ -231,10 +239,14 @@ Dependências a avaliar:
 ### 7. Fechar Home/Dashboard
 Impacto: Médio
 
-- [ ] Exibir logo da empresa ativa na AppBar
-- [ ] Validar métricas contra o escopo
-- [ ] Refinar lista de recentes
-- [ ] Implementar loading skeleton
+- [x] Exibir logo da empresa ativa na AppBar
+  - Arquivos alterados: `lib/features/home/domain/home_notifier.dart`, `lib/features/home/domain/home_state.dart`, `lib/features/home/presentation/home_screen.dart`
+- [x] Validar métricas contra o escopo
+  - Arquivos alterados: `lib/features/home/domain/home_notifier.dart`, `lib/features/home/presentation/home_screen.dart`
+- [x] Refinar lista de recentes
+  - Arquivos alterados: `lib/features/home/presentation/home_screen.dart`
+- [x] Implementar loading skeleton
+  - Arquivos alterados: `lib/features/home/presentation/home_screen.dart`
 
 Arquivos-base:
 - `lib/features/home/presentation/home_screen.dart`
@@ -244,8 +256,8 @@ Arquivos-base:
 Impacto: Médio
 
 - [ ] Filtros por tipo e empresa
-- [ ] FAB novo item
-- [ ] Busca refinada
+- [x] FAB novo item
+- [x] Busca refinada
 - [ ] Preview do item em linha de proposta
 - [ ] Toggle ativo/inativo com UX final
 
@@ -263,7 +275,7 @@ Impacto: Médio
 - [ ] Tema claro/escuro/sistema editável
 - [ ] Notificações push
 - [ ] Sobre + versão
-- [ ] Logout final
+- [x] Logout final
 
 Arquivos-base:
 - `lib/features/settings/presentation/settings_screen.dart`
@@ -307,7 +319,7 @@ Impacto: Médio
 - [ ] Inserção visual real de assinaturas no PDF
 - [ ] Melhorar layout dos PDFs
 - [ ] Armazenamento e recuperação final no Supabase Storage
-- [ ] Garantir hash SHA-256 no fluxo final
+- [x] Garantir hash SHA-256 no fluxo final
 
 Arquivos-base:
 - `lib/core/services/pdf_service.dart`

@@ -6,8 +6,20 @@ import 'package:go_router/go_router.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 import '../../../data/dtos/client_dto.dart';
+import '../../../data/repositories/contract_repository.dart';
+import '../../../data/repositories/proposal_repository.dart';
 import '../domain/client_notifier.dart';
 import '../domain/client_state.dart';
+
+final _clientProposalsProvider = FutureProvider.autoDispose.family((ref, String clientId) async {
+  final proposals = await ref.read(proposalRepositoryProvider).getAll(limit: 100);
+  return proposals.where((proposal) => proposal.clientId == clientId).toList();
+});
+
+final _clientContractsProvider = FutureProvider.autoDispose.family((ref, String clientId) async {
+  final contracts = await ref.read(contractRepositoryProvider).getAll(limit: 100);
+  return contracts.where((contract) => contract.clientId == clientId).toList();
+});
 
 class ClientDetailScreen extends ConsumerStatefulWidget {
   final String clientId;
@@ -201,6 +213,72 @@ class _ClientDetailScreenState extends ConsumerState<ClientDetailScreen> {
             ),
 
             if (!isNew) ...[
+              const SizedBox(height: 24),
+              Text('Histórico vinculado', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 12),
+              Consumer(
+                builder: (context, ref, _) {
+                  final proposalsAsync = ref.watch(_clientProposalsProvider(widget.clientId));
+                  final contractsAsync = ref.watch(_clientContractsProvider(widget.clientId));
+
+                  return Column(
+                    children: [
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: proposalsAsync.when(
+                            loading: () => const Center(child: CircularProgressIndicator()),
+                            error: (_, _) => const Text('Não foi possível carregar propostas.'),
+                            data: (proposals) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Propostas'),
+                                const Divider(),
+                                if (proposals.isEmpty)
+                                  const Text('Nenhuma proposta vinculada.')
+                                else
+                                  ...proposals.map((proposal) => ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        title: Text('Proposta ${proposal.id?.substring(0, 8) ?? ''}'),
+                                        subtitle: Text((proposal.status ?? 'rascunho').toUpperCase()),
+                                        onTap: () => context.push('/proposals/${proposal.id}'),
+                                      )),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: contractsAsync.when(
+                            loading: () => const Center(child: CircularProgressIndicator()),
+                            error: (_, _) => const Text('Não foi possível carregar contratos.'),
+                            data: (contracts) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Contratos'),
+                                const Divider(),
+                                if (contracts.isEmpty)
+                                  const Text('Nenhum contrato vinculado.')
+                                else
+                                  ...contracts.map((contract) => ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        title: Text('Contrato ${contract.id.substring(0, 8)}'),
+                                        subtitle: Text(contract.status.toUpperCase()),
+                                        onTap: () => context.push('/contracts/${contract.id}'),
+                                      )),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => context.push('/proposals/new/step1', extra: client),

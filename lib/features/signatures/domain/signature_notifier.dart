@@ -103,9 +103,7 @@ class SignatureNotifier extends _$SignatureNotifier {
       await sigRepo.signContract(dto: sigDto);
       await contractRepo.updateStatus(currentState.contract.id, 'assinado');
 
-      final certificateUrl = currentState.contract.shareToken?.isNotEmpty == true
-          ? 'https://app.estudyou.com.br/s/${currentState.contract.shareToken}/certificate'
-          : currentState.contract.pdfUrl ?? '';
+      final certificateUrl = 'https://app.estudyou.com.br/contracts/${currentState.contract.id}/certificate';
 
       await contractRepo.updateFinalDocument(
         currentState.contract.id,
