@@ -44,12 +44,18 @@ class _ProposalStep1ScreenState extends ConsumerState<ProposalStep1Screen> {
     if (_initialized) return;
     _initialized = true;
     _observacoesCtrl.text = draft.observacoes ?? '';
-    _selectedProviderId = draft.providerId;
-    _selectedTemplateId = draft.templateId;
+    _selectedProviderId = _normalizeSelection(draft.providerId);
+    _selectedTemplateId = _normalizeSelection(draft.templateId);
     if (draft.validade != null) {
       _validadeDate = draft.validade;
       _validadeCtrl.text = DateFormat('dd/MM/yyyy').format(draft.validade!);
     }
+  }
+
+  String? _normalizeSelection(String? value) {
+    if (value == null) return null;
+    final normalized = value.trim();
+    return normalized.isEmpty ? null : normalized;
   }
 
   @override
@@ -101,29 +107,58 @@ class _ProposalStep1ScreenState extends ConsumerState<ProposalStep1Screen> {
               providersAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (_, _) => const SizedBox.shrink(),
-                data: (providers) => DropdownButtonFormField<String>(
-                  initialValue: _selectedProviderId,
-                  decoration: const InputDecoration(labelText: 'Empresa'),
-                  items: providers
-                      .map((provider) => DropdownMenuItem(
+                data: (providers) {
+                  final providerItems = providers
+                      .map((provider) => DropdownMenuItem<String>(
                             value: provider.id,
                             child: Text(provider.razaoSocial),
                           ))
-                      .toList(),
-                  onChanged: (value) => setState(() => _selectedProviderId = value),
-                  validator: (value) => value == null || value.isEmpty ? 'Selecione uma empresa' : null,
-                ),
+                      .toList();
+                  final validProviderIds = providers.map((provider) => provider.id).toSet();
+                  final selectedProviderId = validProviderIds.contains(_selectedProviderId)
+                      ? _selectedProviderId
+                      : null;
+
+                  if (selectedProviderId != _selectedProviderId) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        setState(() => _selectedProviderId = selectedProviderId);
+                      }
+                    });
+                  }
+
+                  return DropdownButtonFormField<String>(
+                    initialValue: selectedProviderId,
+                    decoration: const InputDecoration(labelText: 'Empresa'),
+                    items: providerItems,
+                    onChanged: (value) => setState(() => _selectedProviderId = value),
+                    validator: (value) => value == null || value.isEmpty ? 'Selecione uma empresa' : null,
+                  );
+                },
               ),
               const SizedBox(height: 16),
               FutureBuilder(
                 future: templatesAsync,
                 builder: (context, snapshot) {
                   final templates = snapshot.data ?? const <ProposalTemplateDto>[];
+                  final activeTemplates = templates.where((template) => template.ativo).toList();
+                  final validTemplateIds = activeTemplates.map((template) => template.id).toSet();
+                  final selectedTemplateId = validTemplateIds.contains(_selectedTemplateId)
+                      ? _selectedTemplateId
+                      : null;
+
+                  if (selectedTemplateId != _selectedTemplateId) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        setState(() => _selectedTemplateId = selectedTemplateId);
+                      }
+                    });
+                  }
+
                   return DropdownButtonFormField<String>(
-                    initialValue: _selectedTemplateId,
+                    initialValue: selectedTemplateId,
                     decoration: const InputDecoration(labelText: 'Modelo de proposta'),
-                    items: templates
-                        .where((template) => template.ativo)
+                    items: activeTemplates
                         .map((template) => DropdownMenuItem<String>(
                               value: template.id,
                               child: Text(template.nome),
