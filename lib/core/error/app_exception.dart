@@ -30,8 +30,8 @@ final class NetworkException extends AppException {
 }
 
 /// Erro de autenticação (credenciais inválidas, sessão expirada, etc.)
-final class AuthException extends AppException {
-  const AuthException(super.message, {super.code, super.originalError});
+final class AppAuthException extends AppException {
+  const AppAuthException(super.message, {super.code, super.originalError});
 
   @override
   String toUserMessage() => switch (code) {
@@ -128,7 +128,7 @@ extension PostgrestExceptionX on PostgrestException {
 /// Converte [AuthException] do Supabase em [AppException].
 extension GoTrueExceptionX on AuthApiException {
   AppException toAppException() {
-    return AuthException(
+    return AppAuthException(
       message,
       code: statusCode,
       originalError: this,
