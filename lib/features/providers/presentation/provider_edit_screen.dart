@@ -1,11 +1,11 @@
 // lib/features/providers/presentation/provider_edit_screen.dart
 
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/services/auth_service.dart';
@@ -31,6 +31,10 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
   final _assinaturaCtrl = TextEditingController();
 
   final _imagePicker = ImagePicker();
+  final _cnpjFormatter = MaskTextInputFormatter(
+    mask: '##.###.###/####-##',
+    filter: {'#': RegExp(r'[0-9]')},
+  );
 
   String? _selectedColor;
   bool _initialized = false;
@@ -55,12 +59,39 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
     _initialized = true;
     _empresaCtrl.text = p.empresa;
     _razaoCtrl.text = p.razaoSocial;
-    _cnpjCtrl.text = p.cnpj;
+    _cnpjCtrl.value = _cnpjFormatter.formatEditUpdate(
+      const TextEditingValue(),
+      TextEditingValue(text: _onlyDigits(p.cnpj)),
+    );
     _enderecoCtrl.text = p.endereco ?? '';
     _responsavelCtrl.text = p.responsavel ?? '';
     _emailCtrl.text = p.email ?? '';
     _assinaturaCtrl.text = p.assinaturaPadrao ?? '';
     _selectedColor = p.corMarca ?? '#1A73E8';
+  }
+
+  String _onlyDigits(String value) => value.replaceAll(RegExp(r'\D'), '');
+
+  String? _validateSlug(String? value) {
+    final slug = value?.trim().toLowerCase() ?? '';
+    if (slug.isEmpty) {
+      return 'Informe o slug da empresa';
+    }
+    if (!RegExp(r'^[a-z0-9_-]+$').hasMatch(slug)) {
+      return 'Use apenas letras minúsculas, números, hífen e underscore';
+    }
+    return null;
+  }
+
+  String? _validateCnpj(String? value) {
+    final digits = _onlyDigits(value ?? '');
+    if (digits.isEmpty) {
+      return 'Informe o CNPJ';
+    }
+    if (digits.length != 14) {
+      return 'Informe um CNPJ com 14 dígitos';
+    }
+    return null;
   }
 
   @override
@@ -130,12 +161,7 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
                   decoration: const InputDecoration(labelText: 'Slug da empresa'),
                   readOnly: !isNew,
                   onChanged: (_) => setState(() {}),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Informe o slug da empresa';
-                    }
-                    return null;
-                  },
+                  validator: _validateSlug,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -153,12 +179,9 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
                   controller: _cnpjCtrl,
                   decoration: const InputDecoration(labelText: 'CNPJ'),
                   readOnly: !isNew,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Informe o CNPJ';
-                    }
-                    return null;
-                  },
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[_cnpjFormatter],
+                  validator: _validateCnpj,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(controller: _enderecoCtrl, decoration: const InputDecoration(labelText: 'Endereço')),
@@ -304,7 +327,7 @@ class _ProviderEditScreenState extends ConsumerState<ProviderEditScreen> {
     final updated = provider.copyWith(
       empresa: _empresaCtrl.text.trim().toLowerCase(),
       razaoSocial: _razaoCtrl.text.trim(),
-      cnpj: _cnpjCtrl.text.trim(),
+      cnpj: _onlyDigits(_cnpjCtrl.text),
       endereco: _enderecoCtrl.text.trim().isEmpty ? null : _enderecoCtrl.text.trim(),
       responsavel: _responsavelCtrl.text.trim().isEmpty ? null : _responsavelCtrl.text.trim(),
       email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
