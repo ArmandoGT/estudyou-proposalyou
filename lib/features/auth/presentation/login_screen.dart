@@ -22,14 +22,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _selectedProvider = 'estudyou';
   bool _obscurePassword = true;
-
-  static const _providers = [
-    ('estudyou', 'Estudyou', Icons.school),
-    ('protseg', 'Protseg', Icons.security),
-    ('protuni', 'Protuni', Icons.shield),
-  ];
 
   @override
   void initState() {
@@ -100,25 +93,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         color: theme.colorScheme.onSurfaceVariant,
                       )),
                   const SizedBox(height: 32),
-
-                  // Seletor de empresa
-                  DropdownButtonFormField<String>(
-                    initialValue: _selectedProvider,
-                    decoration: const InputDecoration(
-                      labelText: 'Empresa',
-                      prefixIcon: Icon(Icons.business),
-                    ),
-                    items: _providers.map((p) => DropdownMenuItem(
-                      value: p.$1,
-                      child: Row(children: [
-                        Icon(p.$3, size: 20),
-                        const SizedBox(width: 8),
-                        Text(p.$2),
-                      ]),
-                    )).toList(),
-                    onChanged: (v) => setState(() => _selectedProvider = v ?? 'estudyou'),
-                  ),
-                  const SizedBox(height: 16),
 
                   // Email
                   TextFormField(
@@ -200,7 +174,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.read(loginProvider.notifier).login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          providerSlug: _selectedProvider,
         );
   }
 
