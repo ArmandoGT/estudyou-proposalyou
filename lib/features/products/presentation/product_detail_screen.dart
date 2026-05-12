@@ -54,7 +54,18 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     // Listener removido para tratamento direto no _save com bloco finally
 
     return Scaffold(
-      appBar: AppBar(title: Text(isNew ? 'Novo Item' : 'Editar Item')),
+      appBar: AppBar(
+        title: Text(isNew ? 'Novo Item' : 'Editar Item'),
+        actions: isNew
+            ? null
+            : [
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: _isLoading ? null : _confirmDelete,
+                  tooltip: 'Excluir item',
+                ),
+              ],
+      ),
       body: switch (state) {
         ProductDetailLoading() => const Center(child: CircularProgressIndicator()),
         ProductDetailError(:final message) => Center(child: Text(message)),
@@ -139,11 +150,61 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 
+  Future<void> _confirmDelete() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Excluir item?'),
+        content: const Text('O item será removido da listagem e não poderá ser usado em novas propostas.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(productDetailProvider(widget.productId).notifier).archiveProduct();
+      ref.invalidate(productListProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Item excluído com sucesso!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Falha ao excluir: ${e.toString().replaceAll("Exception: ", "")}'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     FocusScope.of(context).unfocus();
-    
+
     final isNew = widget.productId == 'new';
     final state = ref.read(productDetailProvider(isNew ? null : widget.productId));
     if (state is! ProductDetailLoaded) return;
