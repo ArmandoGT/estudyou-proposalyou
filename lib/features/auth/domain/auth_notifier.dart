@@ -56,7 +56,6 @@ class LoginNotifier extends _$LoginNotifier {
   Future<void> login({
     required String email,
     required String password,
-    required String providerSlug,
   }) async {
     state = const LoginLoading();
 
@@ -65,7 +64,6 @@ class LoginNotifier extends _$LoginNotifier {
       await authService.signIn(
         email: email,
         password: password,
-        providerSlug: providerSlug,
       );
       state = const LoginSuccess();
     } on AppException catch (e) {
