@@ -11,6 +11,7 @@ import '../../data/dtos/provider_dto.dart';
 import '../../data/repositories/provider_repository.dart';
 import '../../data/supabase/supabase_provider.dart';
 import '../error/app_exception.dart';
+import '../services/active_provider_context.dart';
 import '../../features/home/domain/home_notifier.dart';
 import '../../features/products/domain/product_notifier.dart';
 
@@ -46,11 +47,10 @@ class AuthService extends _$AuthService {
     return client.auth.currentUser;
   }
 
-  /// Login com email e senha. Salva o provider ativo no secure storage.
+  /// Login com email e senha.
   Future<void> signIn({
     required String email,
     required String password,
-    required String providerSlug,
   }) async {
     state = const AsyncLoading();
     try {
@@ -63,20 +63,13 @@ class AuthService extends _$AuthService {
       );
 
       if (response.user == null) {
-        throw const AuthException(
+        throw const AppAuthException(
           'Falha na autenticação',
           code: 'invalid_credentials',
         );
       }
 
-      // Busca o provider pela slug e salva como ativo
-      final providerRepo = ref.read(providerRepositoryProvider);
-      final provider = await providerRepo.getBySlug(providerSlug);
-
-      await _secureStorage.write(key: _kActiveProviderId, value: provider.id);
-      await _secureStorage.write(key: _kActiveProviderSlug, value: providerSlug);
-      await _secureStorage.write(key: _kProviderScope, value: ProviderScopeMode.provider.name);
-
+      _invalidateProviderScopeState();
       state = AsyncData(response.user);
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -91,6 +84,7 @@ class AuthService extends _$AuthService {
       final client = ref.read(supabaseClientProvider);
       await client.auth.signOut();
       await _secureStorage.deleteAll();
+      _invalidateProviderScopeState();
       return null;
     });
   }
@@ -99,18 +93,19 @@ class AuthService extends _$AuthService {
   Future<void> switchActiveProvider(String slug) async {
     final providerRepo = ref.read(providerRepositoryProvider);
     final provider = await providerRepo.getBySlug(slug);
+    await providerRepo.setCurrentUserActiveProvider(provider.id);
     await _secureStorage.write(key: _kActiveProviderId, value: provider.id);
     await _secureStorage.write(key: _kActiveProviderSlug, value: slug);
     await _secureStorage.write(key: _kProviderScope, value: ProviderScopeMode.provider.name);
-    ref.invalidate(homeDashboardProvider);
-    ref.invalidate(productListProvider);
+    _invalidateProviderScopeState();
     state = AsyncData(ref.read(supabaseClientProvider).auth.currentUser);
   }
 
   Future<void> switchToAllProviders() async {
     await _secureStorage.write(key: _kProviderScope, value: ProviderScopeMode.all.name);
-    ref.invalidate(homeDashboardProvider);
-    ref.invalidate(productListProvider);
+    await _secureStorage.delete(key: _kActiveProviderId);
+    await _secureStorage.delete(key: _kActiveProviderSlug);
+    _invalidateProviderScopeState();
     state = AsyncData(ref.read(supabaseClientProvider).auth.currentUser);
   }
 
@@ -144,6 +139,15 @@ class AuthService extends _$AuthService {
   }
 
   /// Verifica se biometria está disponível e habilitada.
+  void _invalidateProviderScopeState() {
+    ref.invalidate(providerScopeModeProvider);
+    ref.invalidate(isAllProvidersScopeProvider);
+    ref.invalidate(activeProviderIdProvider);
+    ref.invalidate(activeProviderProvider);
+    ref.invalidate(homeDashboardProvider);
+    ref.invalidate(productListProvider);
+  }
+
   Future<bool> isBiometricAvailable() async {
     final canCheck = await _localAuth.canCheckBiometrics;
     final isDeviceSupported = await _localAuth.isDeviceSupported();
