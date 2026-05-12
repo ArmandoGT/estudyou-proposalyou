@@ -288,6 +288,10 @@ class ClientDetailNotifier extends _$ClientDetailNotifier {
       final authService = ref.read(authServiceProvider.notifier);
       final activeProviderId = await authService.getActiveProviderId();
       
+      if (activeProviderId == null || activeProviderId.isEmpty) {
+        throw Exception('Você precisa selecionar uma empresa ativa antes de salvar o cliente.');
+      }
+      
       final dtoToSave = dto.copyWith(providerId: activeProviderId);
 
       ClientDto saved;
