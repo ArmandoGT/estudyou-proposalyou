@@ -323,11 +323,13 @@ dart run build_runner build --delete-conflicting-outputs
   </tr>
 </table>
 
-> **Figura 1:** Fluxo inicial da aplicação com autenticação, visão geral do sistema e tela de configurações.
+> **Figura 1:** Interface de autenticação da aplicação, responsável pelo acesso inicial do usuário ao sistema.
 
-> **Plataforma testada:** Android (Emulador)
+> **Figura 2:** Tela principal da aplicação, apresentando indicadores resumidos e atalhos de navegação para as funcionalidades centrais do sistema.
 
-> Novas capturas podem ser adicionadas depois para complementar os módulos de clientes, propostas, contratos e empresas.
+> **Figura 3:** Tela de configurações da aplicação, contendo opções de gerenciamento da empresa ativa e acesso às áreas administrativas.
+
+> **Plataforma testada:** Android (Emulador: Pixel 4 API 36.0)
 
 ---
 
