@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/error/app_exception.dart';
 import '../../../core/services/active_provider_context.dart';
 import '../../../data/dtos/contract_template_dto.dart';
 import '../../../data/repositories/contract_template_repository.dart';
 
 final contractTemplateDetailProvider = FutureProvider.autoDispose.family((ref, String templateId) async {
   if (templateId == 'new') {
-    final providerId = await ref.read(activeProviderIdProvider.future) ?? '';
+    final providerId = await ref.read(activeProviderIdProvider.future);
+    if (providerId == null || providerId.isEmpty) {
+      throw const ValidationException(
+        'Selecione uma empresa específica para criar este item.',
+        code: 'provider_required',
+      );
+    }
     return ContractTemplateDto(
       id: '',
       providerId: providerId,
