@@ -222,7 +222,16 @@ class SettingsScreen extends ConsumerWidget {
     ProviderScopeMode currentScope,
     ProviderDto? currentProvider,
   ) async {
-    final providers = await ref.read(providerRepositoryProvider).getAll();
+    List<ProviderDto> providers = const [];
+    try {
+      providers = await ref.read(providerRepositoryProvider).getAll();
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Não foi possível carregar as empresas: $error')),
+        );
+      }
+    }
     if (!context.mounted) return;
 
     final selection = await showModalBottomSheet<String>(
