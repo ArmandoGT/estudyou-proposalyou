@@ -20,6 +20,7 @@ class ProviderRepository {
   const ProviderRepository(this._client, this._database);
 
   SupabaseQueryBuilder get _table => _client.from('providers');
+  SupabaseQueryBuilder get _userProvidersTable => _client.from('user_providers');
 
   Future<List<ProviderDto>> getAll({bool refreshRemote = false}) async {
     final cached = await _getCachedProviders();
@@ -98,6 +99,39 @@ class ProviderRepository {
       final saved = ProviderDto.fromJson(data);
       await _upsertProviderCache(saved);
       return saved;
+    } on PostgrestException catch (e) {
+      throw e.toAppException();
+    }
+  }
+
+  Future<void> setCurrentUserActiveProvider(
+    String providerId, {
+    String fallbackRole = 'member',
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      throw const AppAuthException('Sessão expirada', code: 'session_expired');
+    }
+
+    try {
+      final existing = await _userProvidersTable
+          .select()
+          .eq('user_id', userId)
+          .eq('provider_id', providerId)
+          .maybeSingle();
+
+      await _userProvidersTable.update({'is_active': false}).eq('user_id', userId);
+
+      if (existing == null) {
+        await _userProvidersTable.insert({
+          'user_id': userId,
+          'provider_id': providerId,
+          'role': fallbackRole,
+          'is_active': true,
+        });
+      } else {
+        await _userProvidersTable.update({'is_active': true}).eq('id', existing['id']);
+      }
     } on PostgrestException catch (e) {
       throw e.toAppException();
     }
