@@ -34,6 +34,7 @@ class _ContractStep3ScreenState extends ConsumerState<ContractStep3Screen> {
     final draft = switch (state) {
       ContractWizardStep3(:final draft) => draft,
       ContractWizardError(:final draft) => draft,
+      ContractWizardSaving(:final draft) => draft,
       _ => null,
     };
 
@@ -238,6 +239,12 @@ class _ContractStep3ScreenState extends ConsumerState<ContractStep3Screen> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contrato salvo com sucesso!')));
         context.go('/contracts/${currentState.contract.id}');
         ref.read(contractWizardProvider.notifier).reset();
+      } else if (currentState is ContractWizardError) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(currentState.message)));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
