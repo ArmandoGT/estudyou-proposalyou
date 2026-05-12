@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/services/active_provider_context.dart';
 import '../../../core/services/auth_service.dart';
 import '../domain/provider_notifier.dart';
 
@@ -29,26 +30,25 @@ class ProviderListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Empresas')),
-      body: FutureBuilder<String?>(
-        future: ref.read(providerListProvider.notifier).getActiveProviderSlug(),
-        builder: (context, activeSnapshot) {
-          final activeSlug = activeSnapshot.data;
-          return asyncProviders.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Erro: $e')),
-            data: (providers) => ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                FilledButton.icon(
-                  onPressed: () => context.push('/providers/new'),
-                  icon: const Icon(Icons.add_business),
-                  label: const Text('Nova empresa'),
-                ),
-                const SizedBox(height: 16),
-                ...providers.map((p) {
-                  final color = _providerColors[p.empresa] ?? theme.colorScheme.primary;
-                  final isActive = p.empresa == activeSlug;
-                  return Card(
+      body: asyncProviders.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Erro: $e')),
+        data: (providers) {
+          final activeProviderAsync = ref.watch(activeProviderProvider);
+          final activeSlug = activeProviderAsync.whenOrNull(data: (provider) => provider?.empresa);
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              FilledButton.icon(
+                onPressed: () => context.push('/providers/new'),
+                icon: const Icon(Icons.add_business),
+                label: const Text('Nova empresa'),
+              ),
+              const SizedBox(height: 16),
+              ...providers.map((p) {
+                final color = _providerColors[p.empresa] ?? theme.colorScheme.primary;
+                final isActive = p.empresa == activeSlug;
+                return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     color: isActive ? color.withValues(alpha: 0.08) : null,
                     shape: RoundedRectangleBorder(
@@ -102,9 +102,8 @@ class ProviderListScreen extends ConsumerWidget {
                       onTap: () => context.push('/providers/${p.id}/edit'),
                     ),
                   );
-                }),
-              ],
-            ),
+              }),
+            ],
           );
         },
       ),
