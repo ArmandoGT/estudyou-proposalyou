@@ -152,10 +152,10 @@ class ProductDetailNotifier extends _$ProductDetailNotifier {
 
     try {
       final repo = ref.read(productRepositoryProvider);
-      
+
       final authService = ref.read(authServiceProvider.notifier);
       final activeProviderId = await authService.getActiveProviderId();
-      
+
       final dtoToSave = dto.copyWith(providerId: activeProviderId);
 
       ProductDto saved;
@@ -173,10 +173,36 @@ class ProductDetailNotifier extends _$ProductDetailNotifier {
     } catch (e) {
       // ignore: avoid_print
       print('Erro crítico ao salvar produto no Supabase: $e');
-      
+
       state = ProductDetailLoaded(product: dto, isNew: currentState.isNew, isSaving: false);
-      
+
       throw Exception('Não foi possível salvar o produto. Detalhes: $e');
+    }
+  }
+
+  Future<void> archiveProduct() async {
+    final currentState = state;
+    if (currentState is! ProductDetailLoaded || currentState.isNew) return;
+
+    state = ProductDetailLoaded(
+      product: currentState.product,
+      isNew: false,
+      isSaving: true,
+    );
+
+    try {
+      final repo = ref.read(productRepositoryProvider);
+      await repo.archive(currentState.product.id!);
+      state = ProductDetailSaved(
+        currentState.product.copyWith(archivedAt: DateTime.now()),
+      );
+    } catch (e) {
+      state = ProductDetailLoaded(
+        product: currentState.product,
+        isNew: false,
+        isSaving: false,
+      );
+      throw Exception('Não foi possível excluir o item. Detalhes: $e');
     }
   }
 }
