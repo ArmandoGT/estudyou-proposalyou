@@ -310,9 +310,18 @@ dart run build_runner build --delete-conflicting-outputs
 
 ### Capturas de Tela
 
-| Tela de Login | Home / Dashboard | Configurações |
-|:---:|:---:|:---:|
-| ![Tela de Login](lib/docs/screenshots/login.png) | ![Tela Home](lib/docs/screenshots/home.png) | ![Tela de Configurações](lib/docs/screenshots/settings.png) |
+<table>
+  <tr>
+    <td align="center"><strong>Tela de Login</strong></td>
+    <td align="center"><strong>Home / Dashboard</strong></td>
+    <td align="center"><strong>Configurações</strong></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="lib/docs/screenshots/login.png" alt="Tela de Login" width="220" /></td>
+    <td align="center"><img src="lib/docs/screenshots/home.png" alt="Tela Home" width="220" /></td>
+    <td align="center"><img src="lib/docs/screenshots/settings.png" alt="Tela de Configurações" width="220" /></td>
+  </tr>
+</table>
 
 > **Figura 1:** Fluxo inicial da aplicação com autenticação, visão geral do sistema e tela de configurações.
 
