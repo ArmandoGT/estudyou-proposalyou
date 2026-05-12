@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 // Import das telas
+import '../../data/dtos/client_dto.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/clients/presentation/client_detail_screen.dart';
@@ -124,6 +125,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Rotas filhas (fora do BottomNav, para cobrir tela inteira)
       GoRoute(path: '/clients/archived', builder: (context, state) => const ClientListScreen(archivedOnly: true)),
+      GoRoute(path: '/clients/new', builder: (context, state) => const ClientDetailScreen(clientId: 'new')),
       GoRoute(path: '/clients/:id', builder: (context, state) => ClientDetailScreen(clientId: state.pathParameters['id']!)),
 
       GoRoute(path: '/providers', builder: (context, state) => const ProviderListScreen()),
@@ -138,7 +140,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/products/:id', builder: (context, state) => ProductDetailScreen(productId: state.pathParameters['id']!)),
       
       GoRoute(path: '/proposals/archived', builder: (context, state) => const ProposalListScreen(archivedOnly: true)),
-      GoRoute(path: '/proposals/new/step1', builder: (context, state) => const ProposalStep1Screen()),
+      GoRoute(
+        path: '/proposals/new/step1',
+        builder: (context, state) => ProposalStep1Screen(
+          initialClient: state.extra is ClientDto ? state.extra as ClientDto : null,
+        ),
+      ),
       GoRoute(path: '/proposals/new/step2', builder: (context, state) => const ProposalStep2Screen()),
       GoRoute(path: '/proposals/new/step3', builder: (context, state) => const ProposalStep3Screen()),
       GoRoute(path: '/proposals/:id', builder: (context, state) => ProposalDetailScreen(proposalId: state.pathParameters['id']!)),
