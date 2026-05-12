@@ -17,8 +17,9 @@ part 'provider_notifier.g.dart';
 class ProviderListNotifier extends _$ProviderListNotifier {
   @override
   Future<List<ProviderDto>> build() async {
+    ref.watch(authServiceProvider);
     final repo = ref.read(providerRepositoryProvider);
-    return repo.getAll();
+    return repo.getAll(refreshRemote: true);
   }
 
   Future<void> refresh() async {
