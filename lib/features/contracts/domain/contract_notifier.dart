@@ -210,14 +210,19 @@ class ContractWizardNotifier extends _$ContractWizardNotifier {
   }
 
   Future<void> save(ContractDto finalDraft, {bool isNew = true, ProposalDto? proposal}) async {
-    state = const ContractWizardSaving();
+    state = ContractWizardSaving(finalDraft, selectedProposal: proposal);
     try {
       final repo = ref.read(contractRepositoryProvider);
       var draftToSave = finalDraft;
       if (draftToSave.providerId.isEmpty) {
         final authService = ref.read(authServiceProvider.notifier);
         final activeProviderId = await authService.getActiveProviderId();
-        draftToSave = draftToSave.copyWith(providerId: activeProviderId ?? '');
+        
+        if (activeProviderId == null || activeProviderId.isEmpty) {
+          throw Exception('Você precisa selecionar uma empresa ativa antes de salvar o contrato.');
+        }
+
+        draftToSave = draftToSave.copyWith(providerId: activeProviderId);
       }
 
       ContractDto saved;
@@ -234,6 +239,11 @@ class ContractWizardNotifier extends _$ContractWizardNotifier {
       state = ContractWizardSuccess(saved);
     } on AppException catch (e) {
       state = ContractWizardError(e.toUserMessage(), finalDraft);
+      if (proposal != null) {
+        state = ContractWizardStep3(finalDraft, selectedProposal: proposal);
+      }
+    } catch (e) {
+      state = ContractWizardError('Erro inesperado ao salvar: $e', finalDraft);
       if (proposal != null) {
         state = ContractWizardStep3(finalDraft, selectedProposal: proposal);
       }
