@@ -284,9 +284,15 @@ class ProposalWizardNotifier extends _$ProposalWizardNotifier {
 
   ProposalWizardState _createInitialState() {
     final draft = ProposalDto(
-      id: null, providerId: '', clientId: '',
-      itensJson: [], total: 0.0, status: 'rascunho', validade: null,
-      createdAt: DateTime.now(), updatedAt: DateTime.now(),
+      id: null,
+      providerId: null,
+      clientId: null,
+      itensJson: [],
+      total: 0.0,
+      status: 'rascunho',
+      validade: null,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
     return ProposalWizardStep1(draft);
   }
@@ -325,6 +331,11 @@ class ProposalWizardNotifier extends _$ProposalWizardNotifier {
       if (draftToSave.providerId == null || draftToSave.providerId!.isEmpty) {
         final authService = ref.read(authServiceProvider.notifier);
         final activeProviderId = await authService.getActiveProviderId();
+        
+        if (activeProviderId == null || activeProviderId.isEmpty) {
+          throw Exception('Você precisa selecionar uma empresa ativa antes de salvar a proposta.');
+        }
+
         draftToSave = draftToSave.copyWith(providerId: activeProviderId);
       }
 
