@@ -120,7 +120,7 @@ class _DashboardContent extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: ElevatedButton(
-              onPressed: () => context.push('/contracts/new'),
+              onPressed: () => context.push('/contracts/new/step1'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0F172A),
                 foregroundColor: Colors.white,
