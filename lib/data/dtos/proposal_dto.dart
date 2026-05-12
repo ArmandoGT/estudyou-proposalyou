@@ -93,8 +93,10 @@ class ProposalDto {
       'desconto': desconto,
       'observacoes': observacoes,
       'versao': versao,
-      'archived_at': archivedAt?.toIso8601String(),
     };
+    if (archivedAt != null) {
+      map['archived_at'] = archivedAt!.toIso8601String();
+    }
     if (id != null && id!.trim().isNotEmpty) {
       map['id'] = id;
     }
