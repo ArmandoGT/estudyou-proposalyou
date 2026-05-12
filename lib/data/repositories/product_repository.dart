@@ -102,6 +102,15 @@ class ProductRepository {
     }
   }
 
+  Future<void> archive(String id) async {
+    try {
+      await _table.update({'archived_at': DateTime.now().toIso8601String()}).eq('id', id);
+      await (_database.delete(_database.cachedProducts)..where((tbl) => tbl.id.equals(id))).go();
+    } on PostgrestException catch (e) {
+      throw e.toAppException();
+    }
+  }
+
   Future<List<ProductDto>> searchByName(
     String query, {
     String? providerId,
