@@ -279,6 +279,19 @@ class ProposalRepository {
       await _upsertProposalsCache(remote);
       return remote;
     } on PostgrestException catch (e) {
+      if (_isMissingArchivedAtColumn(e)) {
+        var fallbackBuilder = _table.select('*, client:clients(nome)')
+            .ilike('id', '%$query%');
+        if (providerId != null && providerId.isNotEmpty) {
+          fallbackBuilder = fallbackBuilder.eq('provider_id', providerId);
+        }
+        final data = await fallbackBuilder
+            .order('updated_at', ascending: false)
+            .limit(20);
+        final remote = data.map(ProposalDto.fromJson).toList();
+        await _upsertProposalsCache(remote);
+        return archivedOnly ? const [] : remote;
+      }
       throw e.toAppException();
     }
   }
@@ -290,17 +303,32 @@ class ProposalRepository {
     String? providerId,
     bool archivedOnly = false,
   }) async {
-    var query = _table.select('*, client:clients(nome)');
-    query = archivedOnly
-        ? query.not('archived_at', 'is', null)
-        : query.isFilter('archived_at', null);
-    if (status != null) query = query.eq('status', status);
-    if (providerId != null && providerId.isNotEmpty) {
-      query = query.eq('provider_id', providerId);
+    try {
+      var query = _table.select('*, client:clients(nome)');
+      query = archivedOnly
+          ? query.not('archived_at', 'is', null)
+          : query.isFilter('archived_at', null);
+      if (status != null) query = query.eq('status', status);
+      if (providerId != null && providerId.isNotEmpty) {
+        query = query.eq('provider_id', providerId);
+      }
+      final data = await query.order('updated_at', ascending: false)
+          .range(offset, offset + limit - 1);
+      return data.map(ProposalDto.fromJson).toList();
+    } on PostgrestException catch (e) {
+      if (_isMissingArchivedAtColumn(e)) {
+        var fallbackQuery = _table.select('*, client:clients(nome)');
+        if (status != null) fallbackQuery = fallbackQuery.eq('status', status);
+        if (providerId != null && providerId.isNotEmpty) {
+          fallbackQuery = fallbackQuery.eq('provider_id', providerId);
+        }
+        final data = await fallbackQuery.order('updated_at', ascending: false)
+            .range(offset, offset + limit - 1);
+        final remote = data.map(ProposalDto.fromJson).toList();
+        return archivedOnly ? const [] : remote;
+      }
+      rethrow;
     }
-    final data = await query.order('updated_at', ascending: false)
-        .range(offset, offset + limit - 1);
-    return data.map(ProposalDto.fromJson).toList();
   }
 
   Future<List<ProposalDto>> _getCachedProposals({
@@ -393,6 +421,10 @@ class ProposalRepository {
           .eq('id', id).single();
       await _upsertProposalCache(ProposalDto.fromJson(data));
     } catch (_) {}
+  }
+
+  bool _isMissingArchivedAtColumn(PostgrestException e) {
+    return e.code == 'PGRST204' && e.message.contains("archived_at");
   }
 
   ProposalDto _proposalFromCache(CachedProposal row) {
