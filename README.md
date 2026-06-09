@@ -275,7 +275,7 @@ Antes de executar, é recomendado ter instalado:
 ### Passos básicos
 
 ```bash
-git clone <url-do-repositorio>
+git clone [<url-do-repositorio>](https://github.com/ArmandoGT/estudyou-proposalyou.git)
 cd proposalyou
 flutter pub get
 flutter run
